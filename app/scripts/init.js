@@ -3,11 +3,11 @@
  */
 
 var wio = new WIO({
-	adapters: [
+  adapters: [
     'crypto',
-		'localstorage',
-		'gdrive'
-	],
+    'localstorage',
+    'gdrive'
+  ],
   options: {
     'gdrive': {
       clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
@@ -16,14 +16,23 @@ var wio = new WIO({
 });
 
 wio.authorize({
-	silent: false
+  silent: false
 }, function(err, response) {
 
-	if(err) return false;
+  if(err) return false;
 
-// 	wio.read({
-// 		path: 'rssr/read.json'
-// 	}, function(err, response) {
+  wio.read({
+    path: 'rssr/read.json'
+  }, function(err, response) {
+    
+    console.log('read');
+    
+    console.log(err);
+    
+    console.log(response);
+    
+  });
+  
 //
 // 		console.log('read error', err);
 // 		console.log('read response', response);

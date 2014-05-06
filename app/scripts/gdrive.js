@@ -10,7 +10,7 @@ WIO.adapter('gdrive', (function() {
 		apiKey,
 		scopes = 'https://www.googleapis.com/auth/drive';
 
-	var authorize = function(params, file, callback) {
+	var authorize = function(params, prev, callback) {
 
 		var auth = function() {
 
@@ -137,49 +137,51 @@ WIO.adapter('gdrive', (function() {
 
 	};
 
-	var read = function(params, callback) {
+	var read = function(params, prev, callback) {
 
-		find(params.path, function(err, fileMeta) {
+    find(params.path, function(err, fileMeta) {
 
-			if(err) {
-				callback(err);
-				return false;
-			}
+      if(err) {
+        callback(err);
+        return false;
+      }
 
-			var request = gapi.client.drive.files.get({
-				fileId: fileMeta.id
-			});
+      var request = gapi.client.drive.files.get({
+        fileId: fileMeta.id
+      });
 
-			request.execute(function(file) {
+      request.execute(function(file) {
 
-				if (file.downloadUrl) {
-					var accessToken = gapi.auth.getToken().access_token;
-					var xhr = new XMLHttpRequest();
-					xhr.open('GET', file.downloadUrl);
-					xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-					xhr.onload = function() {
+        if (file.downloadUrl) {
+          var accessToken = gapi.auth.getToken().access_token;
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', file.downloadUrl);
+          xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+          xhr.onload = function() {
 
-						var fileContent = xhr.responseText;
+            var file = {
+              content: xhr.responseText,
+              meta: fileMeta
+            };
 
-						if(callback) callback(null, {
-							content: fileContent,
-							meta: fileMeta
-						});
+            if(callback) {
+              callback(null, file);
+            }
 
-					};
+          };
 
-					xhr.onerror = function(response) {
+          xhr.onerror = function(response) {
 
-						if(callback) callback(response);
+            if(callback) callback(response);
 
-					};
+          };
 
-					xhr.send();
-				}
+          xhr.send();
+        }
 
-			});
+      });
 
-		});
+    });
 
 	};
 
