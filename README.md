@@ -9,9 +9,9 @@ WIO adapters are plugins that implement individual cloud services (e.g. Google D
 
 ## Development
 
-	grunt server
+  grunt server
 
 ## Build
 
-	grunt
+  grunt
 

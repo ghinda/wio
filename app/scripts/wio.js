@@ -36,9 +36,11 @@ var WIO = function(params) {
 	// async run all adapters
 	var runAdapters = function(run, params, callback) {
 
-		var i = 0;
+		var i = 0,
+        newestRes = {},
+        updateAdapters = [];
 
-		var runner = function(err, file) {
+		var runner = function(err, res) {
 
 			if(err) {
 				return callback(err);
@@ -52,20 +54,43 @@ var WIO = function(params) {
 			// - with the newst - up to this point - file 
 			// (so the newest version is updated on all adapters everywhere)
 			
-      file = file || {};
+      //res = res || {};
+      
+      if(!newestRes.meta) {
+        newestRes = res;
+      }
+      
+      if(run === 'read') {
+      
+        if(newestRes.meta && res.meta) {
+          
+          // compare newst response with current response file
+          if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
+            
+            // return the newest response
+            newestRes = res;
+            
+            // TODO run update method in all adapters that have an older version
+            updateAdapters.push(adapters[i]);
+            
+          }
+          
+        }
+      
+      }
 
 			if(i < adapters.length - 1) {
         // start with the second adapter
         i++;
-				return WIO.adapters[adapters[i]][run](params, file, runner);
+				return WIO.adapters[adapters[i]][run](params, runner);
 			} else {
-				return callback(err, file);
+				return callback(err, newestRes);
 			}
 
 		};
 
     // run the first adapter
-    WIO.adapters[adapters[i]][run](params, {}, runner);
+    WIO.adapters[adapters[i]][run](params, runner);
 
 
 	};

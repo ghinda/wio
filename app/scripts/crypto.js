@@ -6,13 +6,13 @@
 
 WIO.adapter('crypto', (function() {
 
-	var authorize = function(params, prev, callback) {
+	var authorize = function(params, callback) {
 
 		callback(null, {});
 
 	};
   
-  var read = function(params, prev, callback) {
+  var read = function(params, callback) {
 
     callback(null, {});
 

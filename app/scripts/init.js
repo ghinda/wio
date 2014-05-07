@@ -16,7 +16,7 @@ var wio = new WIO({
 });
 
 wio.authorize({
-  silent: false
+  silent: true
 }, function(err, response) {
 
   if(err) return false;

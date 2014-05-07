@@ -10,7 +10,7 @@ WIO.adapter('gdrive', (function() {
 		apiKey,
 		scopes = 'https://www.googleapis.com/auth/drive';
 
-	var authorize = function(params, prev, callback) {
+	var authorize = function(params, callback) {
 
 		var auth = function() {
 
@@ -137,7 +137,7 @@ WIO.adapter('gdrive', (function() {
 
 	};
 
-	var read = function(params, prev, callback) {
+	var read = function(params, callback) {
 
     find(params.path, function(err, fileMeta) {
 
