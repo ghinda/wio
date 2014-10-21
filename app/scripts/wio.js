@@ -36,7 +36,9 @@ var WIO = function(params) {
 	// async run all adapters
 	var runAdapters = function(run, params, callback) {
 
-		var i = 0;
+		var i = 0,
+        newestRes = {},
+        updateAdapters = [];
 
 		var runner = function(err, res) {
 
@@ -44,18 +46,51 @@ var WIO = function(params) {
 				return callback(err);
 			}
 
-			console.log(err, res);
+			// TODO find a general condition to check if the previous file is newer
+			// so I don't have to manually check the previous file in each adapter
+			// TODO only to be used for READ
+			// * in case the file is newer somewhere else
+			// * we'll trigger the UPDATE on all the checked adapters
+			// - with the newst - up to this point - file 
+			// (so the newest version is updated on all adapters everywhere)
+			
+      //res = res || {};
+      
+      if(!newestRes.meta) {
+        newestRes = res;
+      }
+      
+      if(run === 'read') {
+      
+        if(newestRes.meta && res.meta) {
+          
+          // compare newst response with current response file
+          if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
+            
+            // return the newest response
+            newestRes = res;
+            
+            // TODO run update method in all adapters that have an older version
+            updateAdapters.push(adapters[i]);
+            
+          }
+          
+        }
+      
+      }
 
 			if(i < adapters.length - 1) {
-				i++;
+        // start with the second adapter
+        i++;
 				return WIO.adapters[adapters[i]][run](params, runner);
 			} else {
-				return callback(err, res);
+				return callback(err, newestRes);
 			}
 
 		};
 
-		runner();
+    // run the first adapter
+    WIO.adapters[adapters[i]][run](params, runner);
 
 
 	};
@@ -67,53 +102,52 @@ var WIO = function(params) {
 		});
 
 		// async run adapters
-		runAdapters('authorize', params, callback);
-
-		// loop adapters
-// 		adapters.forEach(function(adapter) {
-//
-// 			//console.log(adapter);
-// 			adapter.authorize(params, callback);
-//
-// 		});
-
-
-// 		adapter.authorize(params, callback);
+    runAdapters('authorize', params, callback);
 
 	};
+  
+  var read = function(params, callback) {
 
-// 	var read = function(params, callback) {
-//
-// 		params = defaults(params, {
-// 			path: ''
-// 		});
-//
-// 		adapter.read(params, function(err, file) {
-//
-// 			file = file || {};
-// 			file.path = params.path;
-//
-// 			// do offline stuff
-// 			offlineAdapter.read(file, function(err, response) {
-// 				if(err) return false;
-//
-// 				// if the offline cached version is newer, update the remote one
-// 				if(response.updateRemote) {
-// 					adapter.update({
-// 						path: file.path,
-// 						content: response.file.content
-// 					}, function(err, response) {
-// 						console.log('cache update error', err);
-// 						console.log('cache update response', response);
-// 					});
-// 				}
-// 			});
-//
-// 			callback(err, file);
-//
-// 		});
-//
-// 	};
+    params = defaults(params, {});
+
+    // async run adapters
+    runAdapters('read', params, callback);
+
+  };
+
+//   var read = function(params, callback) {
+// 
+//     params = defaults(params, {
+//       path: ''
+//     });
+// 
+//     adapter.read(params, function(err, file) {
+// 
+//       file = file || {};
+//       file.path = params.path;
+// 
+//       // do offline stuff
+//       offlineAdapter.read(file, function(err, response) {
+//         if(err) return false;
+// 
+//         // if the offline cached version is newer, update the remote one
+//         if(response.updateRemote) {
+//           adapter.update({
+//             path: file.path,
+//             content: response.file.content
+//           }, function(err, response) {
+//             console.log('cache update error', err);
+//             console.log('cache update response', response);
+//           });
+//         }
+//       });
+// 
+//       callback(err, file);
+// 
+//     });
+// 
+//   };
+  
 //
 // 	var update = function(params, callback) {
 //
@@ -159,8 +193,9 @@ var WIO = function(params) {
 
 	// public methods
 	wio = {
-		authorize: authorize
-// 		read: read,
+		authorize: authorize,
+		read: read
+		
 // 		update: update,
 // 		remove: remove
 	}

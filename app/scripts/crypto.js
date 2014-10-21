@@ -11,15 +11,19 @@ WIO.adapter('crypto', (function() {
 		callback(null, {});
 
 	};
+  
+  var read = function(params, callback) {
 
+    callback(null, {});
+
+  };
+  
 	var init = function(options, w) {
 
     // TODO should I switch to this model
     // so that I have full control on adapter execution order?
     var prevAuthorize = w.authorize;
     w.authorize = function(params, callback) {
-
-      console.log('crypto authorize');
 
       prevAuthorize(params, callback);
 
@@ -28,7 +32,8 @@ WIO.adapter('crypto', (function() {
 	};
 
 	return {
-		authorize: authorize,
+    authorize: authorize,
+		read: read,
 
 		init: init
 	}
