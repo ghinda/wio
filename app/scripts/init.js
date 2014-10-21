@@ -1,6 +1,6 @@
 /*
- * Init
- */
+* Init
+*/
 
 var wio = new WIO({
   adapters: [
@@ -24,15 +24,15 @@ wio.authorize({
   wio.read({
     path: 'rssr/read.json'
   }, function(err, response) {
-    
+
     console.log('read');
-    
+
     console.log(err);
-    
+
     console.log(response);
-    
+
   });
-  
+
 //
 // 		console.log('read error', err);
 // 		console.log('read response', response);

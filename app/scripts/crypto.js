@@ -1,24 +1,24 @@
 /*
- * WIO adapter for
- * Crypto
- *
- */
+* WIO adapter for
+* Crypto
+*
+*/
 
 WIO.adapter('crypto', (function() {
 
-	var authorize = function(params, callback) {
+  var authorize = function(params, callback) {
 
-		callback(null, {});
+    callback(null, {});
 
-	};
-  
+  };
+
   var read = function(params, callback) {
 
     callback(null, {});
 
   };
-  
-	var init = function(options, w) {
+
+  var init = function(options, w) {
 
     // TODO should I switch to this model
     // so that I have full control on adapter execution order?
@@ -29,12 +29,12 @@ WIO.adapter('crypto', (function() {
 
     };
 
-	};
+  };
 
-	return {
+  return {
     authorize: authorize,
-		read: read,
+    read: read,
 
-		init: init
-	}
+    init: init
+  }
 })());

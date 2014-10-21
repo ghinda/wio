@@ -1,143 +1,143 @@
 /*
- * WIO adapter for
- * Google Drive
- *
- */
+* WIO adapter for
+* Google Drive
+*
+*/
 
 WIO.adapter('gdrive', (function() {
 
-	var clientId,
-		apiKey,
-		scopes = 'https://www.googleapis.com/auth/drive';
+  var clientId,
+    apiKey,
+    scopes = 'https://www.googleapis.com/auth/drive';
 
-	var authorize = function(params, callback) {
+  var authorize = function(params, callback) {
 
-		var auth = function() {
+    var auth = function() {
 
-			gapi.client.load('drive', 'v2', function() {
+      gapi.client.load('drive', 'v2', function() {
 
-				gapi.auth.authorize({
-					client_id: clientId,
-					scope: scopes,
-					immediate: params.silent
-				}, function(authResult) {
+        gapi.auth.authorize({
+          client_id: clientId,
+          scope: scopes,
+          immediate: params.silent
+        }, function(authResult) {
 
-					if (authResult && !authResult.error) {
-						// Access token has been successfully retrieved, requests can be sent to the API.
-						if(callback) callback(null, authResult);
+          if (authResult && !authResult.error) {
+            // Access token has been successfully retrieved, requests can be sent to the API.
+            if(callback) callback(null, authResult);
 
-					} else {
-						// No access token could be retrieved, show the button to start the authorization flow.
-						if(callback) callback(authResult);
-					};
+          } else {
+            // No access token could be retrieved, show the button to start the authorization flow.
+            if(callback) callback(authResult);
+          };
 
-				});
+        });
 
-			});
+      });
 
-		};
+    };
 
-		// check if api is really loaded
-		if(typeof window['gapi'] === 'undefined') {
-			// async load google api
-			var script = document.createElement('script');
-			script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient');
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    // check if api is really loaded
+    if(typeof window['gapi'] === 'undefined') {
+      // async load google api
+      var script = document.createElement('script');
+      script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient');
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
 
-			window.WioCheckGapiClient = function() {
-				if(apiKey) {
-					gapi.client.setApiKey(apiKey);
-				}
+      window.WioCheckGapiClient = function() {
+        if(apiKey) {
+          gapi.client.setApiKey(apiKey);
+        }
 
-				auth();
-			};
-		} else {
-			auth();
-		}
+        auth();
+      };
+    } else {
+      auth();
+    }
 
 
 
-	};
+  };
 
-	var find = function(path, callback) {
+  var find = function(path, callback) {
 
-		var parsedPath = path.split('/');
+    var parsedPath = path.split('/');
 
-		var i = 0,
-			lastParent,
-			currentPath = '';
+    var i = 0,
+      lastParent,
+      currentPath = '';
 
-		// if first item is blank, because url starts with /
-		// use 'root' parent, to start searching from the root
-		if(parsedPath[0] === '') {
-			lastParent = {};
-			lastParent.id = 'root';
-			parsedPath.splice(0, 1);
+    // if first item is blank, because url starts with /
+    // use 'root' parent, to start searching from the root
+    if(parsedPath[0] === '') {
+      lastParent = {};
+      lastParent.id = 'root';
+      parsedPath.splice(0, 1);
 
-			currentPath += '/';
-		}
+      currentPath += '/';
+    }
 
-		var finder = function() {
+    var finder = function() {
 
-			var mimeType = (i === parsedPath.length - 1) ? false : 'application/vnd.google-apps.folder';
+      var mimeType = (i === parsedPath.length - 1) ? false : 'application/vnd.google-apps.folder';
 
-			var q = 'title="' + parsedPath[i] + '" AND trashed=false';
+      var q = 'title="' + parsedPath[i] + '" AND trashed=false';
 
-			if(lastParent) {
-				q += ' AND "' + lastParent.id + '" in parents';
-			};
+      if(lastParent) {
+        q += ' AND "' + lastParent.id + '" in parents';
+      };
 
-			if(mimeType) {
-				q += ' AND mimeType="' + mimeType + '"';
-			};
+      if(mimeType) {
+        q += ' AND mimeType="' + mimeType + '"';
+      };
 
-			var request = gapi.client.drive.files.list({
-				q: q
-			});
+      var request = gapi.client.drive.files.list({
+        q: q
+      });
 
-			request.execute(function(response) {
+      request.execute(function(response) {
 
-				currentPath += parsedPath[i];
+        currentPath += parsedPath[i];
 
-				if(response.items) {
-					i++;
-					if(i < parsedPath.length) {
+        if(response.items) {
+          i++;
+          if(i < parsedPath.length) {
 
-						lastParent = response.items[0];
-						finder();
+            lastParent = response.items[0];
+            finder();
 
-						// if not last item
-						currentPath += '/';
+            // if not last item
+            currentPath += '/';
 
-					} else {
+          } else {
 
-						if(callback) callback(null, response.items[0]);
+            if(callback) callback(null, response.items[0]);
 
-					}
+          }
 
-				} else {
+        } else {
 
-					if(callback) {
+          if(callback) {
 
-						callback({
-							error: '404',
-							path: currentPath,
-							parent: lastParent
-						});
+            callback({
+              error: '404',
+              path: currentPath,
+              parent: lastParent
+            });
 
-					}
+          }
 
-				}
+        }
 
-			});
+      });
 
-		};
+    };
 
-		finder();
+    finder();
 
-	};
+  };
 
-	var read = function(params, callback) {
+  var read = function(params, callback) {
 
     find(params.path, function(err, fileMeta) {
 
@@ -183,163 +183,163 @@ WIO.adapter('gdrive', (function() {
 
     });
 
-	};
+  };
 
-	var utf8_to_b64 = function(str) {
-		return window.btoa(unescape(encodeURIComponent( str )));
-	};
+  var utf8_to_b64 = function(str) {
+    return window.btoa(unescape(encodeURIComponent( str )));
+  };
 
-	var update = function(params, callback) {
+  var update = function(params, callback) {
 
-		var fileMeta = {};
+    var fileMeta = {};
 
-		var updateFile = function() {
+    var updateFile = function() {
 
-			var boundary = '-------314159265358979323846';
-			var delimiter = '\r\n--' + boundary + '\r\n';
-			var close_delim = '\r\n--' + boundary + '--';
+      var boundary = '-------314159265358979323846';
+      var delimiter = '\r\n--' + boundary + '\r\n';
+      var close_delim = '\r\n--' + boundary + '--';
 
-			var contentType = params.mimeType || 'application/octet-stream';
-			var metadata = {
-				title: fileMeta.title,
-				parents: fileMeta.parents
-			};
+      var contentType = params.mimeType || 'application/octet-stream';
+      var metadata = {
+        title: fileMeta.title,
+        parents: fileMeta.parents
+      };
 
-			var base64Data = utf8_to_b64(params.content);
-			var multipartRequestBody =
-				delimiter +
-				'Content-Type: application/json\r\n\r\n' +
-				JSON.stringify(metadata) +
-				delimiter +
-				'Content-Type: ' + contentType + '\r\n' +
-				'Content-Transfer-Encoding: base64\r\n' +
-				'\r\n' +
-				base64Data +
-				close_delim;
+      var base64Data = utf8_to_b64(params.content);
+      var multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        'Content-Type: ' + contentType + '\r\n' +
+        'Content-Transfer-Encoding: base64\r\n' +
+        '\r\n' +
+        base64Data +
+        close_delim;
 
-			var request = gapi.client.request({
-				path: '/upload/drive/v2/files/' + (fileMeta.id || ''),
-				method: fileMeta.id ? 'PUT' : 'POST',
-				params: {
-					uploadType: 'multipart',
-					alt: 'json'
-				},
-				headers: {
-					'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
-				},
-				body: multipartRequestBody
-			});
+      var request = gapi.client.request({
+        path: '/upload/drive/v2/files/' + (fileMeta.id || ''),
+        method: fileMeta.id ? 'PUT' : 'POST',
+        params: {
+          uploadType: 'multipart',
+          alt: 'json'
+        },
+        headers: {
+          'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+        },
+        body: multipartRequestBody
+      });
 
-			request.execute(function(response) {
+      request.execute(function(response) {
 
-				if(response.error) {
-					callback && callback(response);
-					return false;
-				}
+        if(response.error) {
+          callback && callback(response);
+          return false;
+        }
 
-				callback && callback(null, response);
+        callback && callback(null, response);
 
-			});
+      });
 
 
-		};
+    };
 
-		find(params.path, function(err, meta) {
+    find(params.path, function(err, meta) {
 
-			if(err) {
-				// if path is not found, something wasn't found in the path
+      if(err) {
+        // if path is not found, something wasn't found in the path
 
-				var parsedPath = err.path.split('/');
+        var parsedPath = err.path.split('/');
 
-				// check if file or folder wasn't found
-				if(err.path.split('.').length > 1) {
+        // check if file or folder wasn't found
+        if(err.path.split('.').length > 1) {
 
-					// create file
-					fileMeta.title = parsedPath[parsedPath.length - 1];
-					fileMeta.parents = (err.parent) ? [ err.parent ] : [];
+          // create file
+          fileMeta.title = parsedPath[parsedPath.length - 1];
+          fileMeta.parents = (err.parent) ? [ err.parent ] : [];
 
-					updateFile();
+          updateFile();
 
-				} else {
+        } else {
 
-					// create folder
-					var request = gapi.client.drive.files.insert({
-						resource: {
-							title: parsedPath[parsedPath.length - 1],
-							mimeType: 'application/vnd.google-apps.folder',
-							parents: (err.parent) ? [ err.parent ] : []
-						}
-					});
+          // create folder
+          var request = gapi.client.drive.files.insert({
+            resource: {
+              title: parsedPath[parsedPath.length - 1],
+              mimeType: 'application/vnd.google-apps.folder',
+              parents: (err.parent) ? [ err.parent ] : []
+            }
+          });
 
-					request.execute(function(response) {
+          request.execute(function(response) {
 
-						if(response.error) {
+            if(response.error) {
 
-							console.log(response);
+              console.log(response);
 
-						} else {
+            } else {
 
-							// try again with the full path
-							update(params, callback);
+              // try again with the full path
+              update(params, callback);
 
-						}
+            }
 
-					});
+          });
 
-				}
+        }
 
-			} else {
-				fileMeta = meta;
-				updateFile();
-			}
-		});
+      } else {
+        fileMeta = meta;
+        updateFile();
+      }
+    });
 
-	};
+  };
 
-	var remove = function(params, callback) {
+  var remove = function(params, callback) {
 
-		find(params.path, function(err, fileMeta) {
+    find(params.path, function(err, fileMeta) {
 
-			if(err) {
-				callback(err);
-				return false;
-			}
+      if(err) {
+        callback(err);
+        return false;
+      }
 
-			var request = gapi.client.drive.files.delete({
-				fileId: fileMeta.id
-			});
+      var request = gapi.client.drive.files.delete({
+        fileId: fileMeta.id
+      });
 
-			request.execute(function(file) {
+      request.execute(function(file) {
 
-				if(!file) {
-					callback({
-						error: 'Something went wrong'
-					});
+        if(!file) {
+          callback({
+            error: 'Something went wrong'
+          });
 
-					return false;
-				}
+          return false;
+        }
 
-				callback(null, file);
+        callback(null, file);
 
-			});
+      });
 
-		});
+    });
 
-	};
+  };
 
-	var init = function(options) {
+  var init = function(options) {
 
-		clientId = options.clientId;
-		apiKey = options.apiKey;
+    clientId = options.clientId;
+    apiKey = options.apiKey;
 
-	};
+  };
 
-	return {
-		authorize: authorize,
-		read: read,
-		update: update,
-		remove: remove,
+  return {
+    authorize: authorize,
+    read: read,
+    update: update,
+    remove: remove,
 
-		init: init
-	}
+    init: init
+  }
 })());

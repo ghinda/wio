@@ -1,111 +1,111 @@
 /*
- * wio.js
- * unified file manipulation api
- */
+* wio.js
+* unified file manipulation api
+*/
 
 var WIO = function(params) {
-	'use strict';
+  'use strict';
 
-	/* normalize metadata
-	 */
-	var normalize = function(meta) {
-		normalizedMeta = JSON.parse(JSON.stringify(meta));
+  /* normalize metadata
+  */
+  var normalize = function(meta) {
+    normalizedMeta = JSON.parse(JSON.stringify(meta));
 
-		// createdDate
-		normalizedMeta.createdDate = meta.createdDate;
+    // createdDate
+    normalizedMeta.createdDate = meta.createdDate;
 
-		// modifiedDate
-		normalizedMeta.modifiedDate = meta.modifiedDate;
+    // modifiedDate
+    normalizedMeta.modifiedDate = meta.modifiedDate;
 
-		return normalizedMeta;
-	};
+    return normalizedMeta;
+  };
 
-	/* simple extend for default params
-	 */
-	var defaults = function(destination, source) {
-		destination = destination || {};
-		for (var property in source) {
-			if(typeof destination[property] === "undefined") {
-				destination[property] = source[property];
-			}
-		}
+  /* simple extend for default params
+  */
+  var defaults = function(destination, source) {
+    destination = destination || {};
+    for (var property in source) {
+      if(typeof destination[property] === "undefined") {
+        destination[property] = source[property];
+      }
+    }
 
-		return destination;
-	};
+    return destination;
+  };
 
-	// async run all adapters
-	var runAdapters = function(run, params, callback) {
+  // async run all adapters
+  var runAdapters = function(run, params, callback) {
 
-		var i = 0,
+    var i = 0,
         newestRes = {},
         updateAdapters = [];
 
-		var runner = function(err, res) {
+    var runner = function(err, res) {
 
-			if(err) {
-				return callback(err);
-			}
+      if(err) {
+        return callback(err);
+      }
 
-			// TODO find a general condition to check if the previous file is newer
-			// so I don't have to manually check the previous file in each adapter
-			// TODO only to be used for READ
-			// * in case the file is newer somewhere else
-			// * we'll trigger the UPDATE on all the checked adapters
-			// - with the newst - up to this point - file 
-			// (so the newest version is updated on all adapters everywhere)
-			
+      // TODO find a general condition to check if the previous file is newer
+      // so I don't have to manually check the previous file in each adapter
+      // TODO only to be used for READ
+      // * in case the file is newer somewhere else
+      // * we'll trigger the UPDATE on all the checked adapters
+      // - with the newst - up to this point - file
+      // (so the newest version is updated on all adapters everywhere)
+
       //res = res || {};
-      
+
       if(!newestRes.meta) {
         newestRes = res;
       }
-      
+
       if(run === 'read') {
-      
+
         if(newestRes.meta && res.meta) {
-          
+
           // compare newst response with current response file
           if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
-            
+
             // return the newest response
             newestRes = res;
-            
+
             // TODO run update method in all adapters that have an older version
             updateAdapters.push(adapters[i]);
-            
+
           }
-          
+
         }
-      
+
       }
 
-			if(i < adapters.length - 1) {
+      if(i < adapters.length - 1) {
         // start with the second adapter
         i++;
-				return WIO.adapters[adapters[i]][run](params, runner);
-			} else {
-				return callback(err, newestRes);
-			}
+        return WIO.adapters[adapters[i]][run](params, runner);
+      } else {
+        return callback(err, newestRes);
+      }
 
-		};
+    };
 
     // run the first adapter
     WIO.adapters[adapters[i]][run](params, runner);
 
 
-	};
+  };
 
-	var authorize = function(params, callback) {
+  var authorize = function(params, callback) {
 
-		params = defaults(params, {
-			silent: false
-		});
+    params = defaults(params, {
+      silent: false
+    });
 
-		// async run adapters
+    // async run adapters
     runAdapters('authorize', params, callback);
 
-	};
-  
+  };
+
   var read = function(params, callback) {
 
     params = defaults(params, {});
@@ -116,20 +116,20 @@ var WIO = function(params) {
   };
 
 //   var read = function(params, callback) {
-// 
+//
 //     params = defaults(params, {
 //       path: ''
 //     });
-// 
+//
 //     adapter.read(params, function(err, file) {
-// 
+//
 //       file = file || {};
 //       file.path = params.path;
-// 
+//
 //       // do offline stuff
 //       offlineAdapter.read(file, function(err, response) {
 //         if(err) return false;
-// 
+//
 //         // if the offline cached version is newer, update the remote one
 //         if(response.updateRemote) {
 //           adapter.update({
@@ -141,13 +141,13 @@ var WIO = function(params) {
 //           });
 //         }
 //       });
-// 
+//
 //       callback(err, file);
-// 
+//
 //     });
-// 
+//
 //   };
-  
+
 //
 // 	var update = function(params, callback) {
 //
@@ -187,26 +187,26 @@ var WIO = function(params) {
 //
 // 	};
 
-	// TODO list
+  // TODO list
 
-	//console.log(params.adapters);
+  //console.log(params.adapters);
 
-	// public methods
-	wio = {
-		authorize: authorize,
-		read: read
-		
+  // public methods
+  wio = {
+    authorize: authorize,
+    read: read
+
 // 		update: update,
 // 		remove: remove
-	}
+  }
 
-	// init adapters, and allow them to manipulate public methods
-	var adapters = params.adapters;
-	adapters.forEach(function(adapterName) {
- 		WIO.adapters[adapterName].init(params.options[adapterName], wio);
-	});
+  // init adapters, and allow them to manipulate public methods
+  var adapters = params.adapters;
+  adapters.forEach(function(adapterName) {
+    WIO.adapters[adapterName].init(params.options[adapterName], wio);
+  });
 
-	return wio;
+  return wio;
 
 };
 
@@ -214,16 +214,16 @@ WIO.adapters = {};
 
 WIO.adapter = function(id, obj) {
 
-	// TODO check if adapter has all required methods
+  // TODO check if adapter has all required methods
 
-	// methods required to implement a wio adapter
+  // methods required to implement a wio adapter
     var implementing = 'authorize'.split(' ');
 
     // mix in the adapter
     implementing.forEach(function(prop) {
         if(!obj.hasOwnProperty(prop)) {
-			throw 'Invalid adapter! Missing method: ' + prop
-		}
+      throw 'Invalid adapter! Missing method: ' + prop
+    }
     });
 
     WIO.adapters[id] = obj;
