@@ -115,6 +115,15 @@ var WIO = function(params) {
 
   };
 
+  var update = function(params, callback) {
+
+    params = defaults(params, {});
+
+    // async run adapters
+    runAdapters('update', params, callback);
+
+  };
+
 //   var read = function(params, callback) {
 //
 //     params = defaults(params, {
@@ -194,9 +203,9 @@ var WIO = function(params) {
   // public methods
   wio = {
     authorize: authorize,
-    read: read
+    read: read,
+    update: update
 
-// 		update: update,
 // 		remove: remove
   }
 

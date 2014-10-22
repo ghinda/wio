@@ -99,7 +99,8 @@ WIO.adapter('gdrive', (function() {
 
         currentPath += parsedPath[i];
 
-        if(response.items) {
+        if(response.items && response.items.length) {
+
           i++;
           if(i < parsedPath.length) {
 
@@ -187,7 +188,12 @@ WIO.adapter('gdrive', (function() {
 
   var utf8_to_b64 = function(str) {
     return window.btoa(unescape(encodeURIComponent( str )));
+    //return window.btoa(str);
   };
+
+  var isB64 = function(str) {
+    return /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(str);
+  }
 
   var update = function(params, callback) {
 
@@ -205,46 +211,93 @@ WIO.adapter('gdrive', (function() {
         parents: fileMeta.parents
       };
 
-      var base64Data = utf8_to_b64(params.content);
-      var multipartRequestBody =
-        delimiter +
-        'Content-Type: application/json\r\n\r\n' +
-        JSON.stringify(metadata) +
-        delimiter +
-        'Content-Type: ' + contentType + '\r\n' +
-        'Content-Transfer-Encoding: base64\r\n' +
-        '\r\n' +
-        base64Data +
-        close_delim;
+      var makeRequest = function() {
 
-      var request = gapi.client.request({
-        path: '/upload/drive/v2/files/' + (fileMeta.id || ''),
-        method: fileMeta.id ? 'PUT' : 'POST',
-        params: {
-          uploadType: 'multipart',
-          alt: 'json'
-        },
-        headers: {
-          'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
-        },
-        body: multipartRequestBody
-      });
+        var multipartRequestBody =
+          delimiter +
+          'Content-Type: application/json\r\n\r\n' +
+          JSON.stringify(metadata) +
+          delimiter +
+          'Content-Type: ' + contentType + '\r\n' +
+          'Content-Transfer-Encoding: base64\r\n' +
+          '\r\n' +
+          base64Data +
+          close_delim;
 
-      request.execute(function(response) {
+        var request = gapi.client.request({
+          path: '/upload/drive/v2/files/' + (fileMeta.id || ''),
+          method: fileMeta.id ? 'PUT' : 'POST',
+          params: {
+            uploadType: 'multipart'
+            //alt: 'json'
+          },
+          headers: {
+            'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+          },
+          body: multipartRequestBody
+        });
 
-        if(response.error) {
-          callback && callback(response);
-          return false;
+        request.execute(function(response) {
+
+          console.log(params.path, response);
+
+          if(response.error) {
+            callback && callback(response);
+            return false;
+          }
+
+          callback && callback(null, response);
+
+        });
+
+      };
+
+      var base64Data;
+
+      if(typeof(params.content) === 'string') {
+
+        // just text or base64
+
+        params.content = params.content.replace(/^data:image\/(png|jpg);base64,/, '');
+
+        if(isB64(params.content)) {
+
+          base64Data = params.content;
+
+        } else {
+
+          base64Data = utf8_to_b64(params.content);
+
         }
 
-        callback && callback(null, response);
+        makeRequest();
 
-      });
+      } else {
+
+        // must be blob
+
+        var reader = new FileReader();
+        reader.readAsBinaryString(params.content);
+        reader.onload = function(e) {
+
+          base64Data = window.btoa(reader.result);
+
+          makeRequest();
+
+        }
+
+      }
+
+      console.log(params.path, isB64(params.content), typeof(params.content));
+
+
 
 
     };
 
     find(params.path, function(err, meta) {
+
+      console.log(err, meta);
 
       if(err) {
         // if path is not found, something wasn't found in the path
