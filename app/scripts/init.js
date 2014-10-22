@@ -4,8 +4,8 @@
 
 var wio = new WIO({
   adapters: [
-  // 'crypto',
-  // 'localstorage',
+    'crypto',
+    'localstorage',
     'gdrive'
   ],
   options: {
@@ -45,6 +45,7 @@ wio.authorize({
 
   if(err) return false;
 
+              /*
   var canvas = document.getElementById("canvas");
   var context = canvas.getContext("2d");
   context.fillStyle = "green";
@@ -85,6 +86,7 @@ wio.authorize({
   });
 
   return false;
+  */
 
   wio.read({
     path: 'rssr/read.json'

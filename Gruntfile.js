@@ -77,11 +77,6 @@ module.exports = function (grunt) {
         }
       }
     },
-    open: {
-      server: {
-        url: 'http://localhost:<%= connect.options.port %>'
-      }
-    },
     clean: {
       dist: {
         files: [{
@@ -203,27 +198,6 @@ module.exports = function (grunt) {
         }]
       }
     },
-    concurrent: {
-      server: [
-      ],
-      test: [
-      ],
-      dist: [
-        'imagemin',
-        'htmlmin'
-      ]
-    },
-    karma: {
-      unit: {
-        configFile: 'karma.conf.js',
-        singleRun: true
-      }
-    },
-    cdnify: {
-      dist: {
-        html: ['<%= yeoman.dist %>/*.html']
-      }
-    },
     ngAnnotate: {
       dist: {
         files: [{
@@ -252,26 +226,18 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
-      'concurrent:server',
       'connect:livereload',
       'watch'
     ]);
   });
 
-  grunt.registerTask('test', [
-    'clean:server',
-    'concurrent:test',
-    'connect:test',
-    'karma'
-  ]);
-
   grunt.registerTask('build', [
     'clean:dist',
     'useminPrepare',
-    'concurrent:dist',
+    'imagemin',
+    'htmlmin',
     'concat',
     'copy',
-    'cdnify',
     'ngAnnotate',
     'cssmin',
     'uglify',

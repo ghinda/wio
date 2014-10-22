@@ -239,8 +239,6 @@ WIO.adapter('gdrive', (function() {
 
         request.execute(function(response) {
 
-          console.log(params.path, response);
-
           if(response.error) {
             callback && callback(response);
             return false;
@@ -258,7 +256,8 @@ WIO.adapter('gdrive', (function() {
 
         // just text or base64
 
-        params.content = params.content.replace(/^data:image\/(png|jpg);base64,/, '');
+        // TODO should be done by the user, not the adapter
+        // params.content = params.content.replace(/^data:image\/(png|jpg);base64,/, '');
 
         if(isB64(params.content)) {
 
@@ -288,16 +287,9 @@ WIO.adapter('gdrive', (function() {
 
       }
 
-      console.log(params.path, isB64(params.content), typeof(params.content));
-
-
-
-
     };
 
     find(params.path, function(err, meta) {
-
-      console.log(err, meta);
 
       if(err) {
         // if path is not found, something wasn't found in the path

@@ -34,11 +34,13 @@ var WIO = function(params) {
   };
 
   // async run all adapters
-  var runAdapters = function(run, params, callback) {
+  var runAdapters = function(adapters, run, params, callback) {
 
-    var i = 0,
-        newestRes = {},
-        updateAdapters = [];
+    var i = 0;
+    var newestRes = {};
+    var newestAdapter;
+
+    var updateAdapters = adapters.slice();
 
     var runner = function(err, res) {
 
@@ -46,32 +48,32 @@ var WIO = function(params) {
         return callback(err);
       }
 
-      // TODO find a general condition to check if the previous file is newer
-      // so I don't have to manually check the previous file in each adapter
-      // TODO only to be used for READ
-      // * in case the file is newer somewhere else
-      // * we'll trigger the UPDATE on all the checked adapters
-      // - with the newst - up to this point - file
-      // (so the newest version is updated on all adapters everywhere)
-
-      //res = res || {};
-
-      if(!newestRes.meta) {
-        newestRes = res;
-      }
-
       if(run === 'read') {
 
+        if(!newestRes.meta && res.meta) {
+          newestRes = res;
+        }
+
+        // if we don't return the meta property from the adapter
+        // it means we don't want it compared
+        // or messed with - eg. crypto
         if(newestRes.meta && res.meta) {
 
-          // compare newst response with current response file
+          // force oldest date
+          // in case the file had no date / is nonexistent
+          // so its adapter gets updated
+          // on read from different adapter
+          res.meta.modifiedDate = res.meta.modifiedDate || new Date('1970-01-01').toISOString();
+
+          console.log(new Date(res.meta.modifiedDate));
+          console.log(new Date(newestRes.meta.modifiedDate));
+
+          // compare newest response with current response file
           if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
 
             // return the newest response
             newestRes = res;
-
-            // TODO run update method in all adapters that have an older version
-            updateAdapters.push(adapters[i]);
+            newestAdapter = adapters[i];
 
           }
 
@@ -84,6 +86,29 @@ var WIO = function(params) {
         i++;
         return WIO.adapters[adapters[i]][run](params, runner);
       } else {
+
+        if(run === 'read') {
+
+          if(newestAdapter) {
+
+            // TODO run update method in all adapters that have an older version
+
+            updateAdapters.splice(updateAdapters.indexOf(newestAdapter), 1);
+
+            runAdapters(updateAdapters, 'update', {
+              path: params.path,
+              content: newestRes.content,
+              meta: newestRes.meta
+            }, function() {
+              console.log('done updating old adapters');
+            });
+
+            console.log(updateAdapters);
+
+          }
+
+        }
+
         return callback(err, newestRes);
       }
 
@@ -102,7 +127,7 @@ var WIO = function(params) {
     });
 
     // async run adapters
-    runAdapters('authorize', params, callback);
+    runAdapters(adapters, 'authorize', params, callback);
 
   };
 
@@ -111,7 +136,7 @@ var WIO = function(params) {
     params = defaults(params, {});
 
     // async run adapters
-    runAdapters('read', params, callback);
+    runAdapters(adapters, 'read', params, callback);
 
   };
 
@@ -120,7 +145,7 @@ var WIO = function(params) {
     params = defaults(params, {});
 
     // async run adapters
-    runAdapters('update', params, callback);
+    runAdapters(adapters, 'update', params, callback);
 
   };
 
