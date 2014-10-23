@@ -17,7 +17,7 @@ WIO.adapter('localstorage', (function() {
 
   var read = function(params,  callback) {
 
-    var file = storage.getItem(params.path) || '{ meta: {} }';
+    var file = storage.getItem(params.path) || '{ "meta": {} }';
 
     // don't return an error, maybe the file is in another adapter
 

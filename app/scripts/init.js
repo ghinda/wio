@@ -40,7 +40,7 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 }
 
 wio.authorize({
-  silent: true
+  silent: false
 }, function(err, response) {
 
   if(err) return false;
