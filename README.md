@@ -31,5 +31,15 @@ var io = new wio({
   }
 });
 
+io.authorize({}, function(err, response) {
 
+  io.read({
+    path: '/test/test.txt'
+  }, function(err, response) {
+
+    console.log(response);
+
+  });
+
+});
 ```
