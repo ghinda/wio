@@ -26,7 +26,7 @@ var io = new wio({
   ],
   options: {
     'gdrive': {
-      clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
+      clientId: '1234567890.apps.googleusercontent.com'
     }
   }
 });
