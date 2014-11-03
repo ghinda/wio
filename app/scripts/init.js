@@ -2,7 +2,7 @@
 * Init
 */
 
-var wio = new WIO({
+var io = new wio({
   adapters: [
     'crypto',
     'localstorage',
@@ -39,11 +39,33 @@ function b64toBlob(b64Data, contentType, sliceSize) {
     return blob;
 }
 
-wio.authorize({
-  silent: false
-}, function(err, response) {
+io.authorize(function(err, response) {
 
   if(err) return false;
+
+  io.read({
+    path: 'rssr/read.json'
+  }, function(err, response) {
+
+    console.log('read');
+
+    console.log(err);
+
+    console.log(response);
+
+  });
+
+//   io.list({
+//     path: 'rssr'
+//   }, function(err, response) {
+//
+//     console.log('list');
+//
+//     console.log(err);
+//
+//     console.log(response);
+//
+//   });
 
               /*
   var canvas = document.getElementById("canvas");
@@ -86,19 +108,9 @@ wio.authorize({
   });
 
   return false;
+
+
   */
-
-  wio.read({
-    path: 'rssr/read.json'
-  }, function(err, response) {
-
-    console.log('read');
-
-    console.log(err);
-
-    console.log(response);
-
-  });
 
 //
 // 		console.log('read error', err);

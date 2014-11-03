@@ -1,10 +1,10 @@
 /*
-* WIO adapter for
+* wio adapter for
 * LocalStorage
 *
 */
 
-WIO.adapter('localstorage', (function() {
+wio.adapter('localstorage', (function() {
 
   var storage = window.localStorage;
 

@@ -1,10 +1,10 @@
 /*
-* WIO adapter for
+* wio adapter for
 * Crypto
 *
 */
 
-WIO.adapter('crypto', (function() {
+wio.adapter('crypto', (function() {
 
   var blank = function(params, callback) {
 

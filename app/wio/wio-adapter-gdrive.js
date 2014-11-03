@@ -1,10 +1,10 @@
 /*
-* WIO adapter for
+* wio adapter for
 * Google Drive
 *
 */
 
-WIO.adapter('gdrive', (function() {
+wio.adapter('gdrive', (function() {
 
   var clientId,
     apiKey,
@@ -54,8 +54,6 @@ WIO.adapter('gdrive', (function() {
     } else {
       auth();
     }
-
-
 
   };
 
@@ -188,12 +186,11 @@ WIO.adapter('gdrive', (function() {
 
   var utf8_to_b64 = function(str) {
     return window.btoa(unescape(encodeURIComponent( str )));
-    //return window.btoa(str);
   };
 
   var isB64 = function(str) {
     return /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(str);
-  }
+  };
 
   var update = function(params, callback) {
 
@@ -255,10 +252,6 @@ WIO.adapter('gdrive', (function() {
       if(typeof(params.content) === 'string') {
 
         // just text or base64
-
-        // TODO should be done by the user, not the adapter
-        // params.content = params.content.replace(/^data:image\/(png|jpg);base64,/, '');
-
         if(isB64(params.content)) {
 
           base64Data = params.content;

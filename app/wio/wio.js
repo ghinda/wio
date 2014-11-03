@@ -3,11 +3,11 @@
 * unified file manipulation api
 */
 
-var WIO = function(params) {
+var wio = function(params) {
   'use strict';
 
   /* normalize metadata
-  */
+   */
   var normalize = function(meta) {
     normalizedMeta = JSON.parse(JSON.stringify(meta));
 
@@ -20,12 +20,13 @@ var WIO = function(params) {
     return normalizedMeta;
   };
 
-  /* simple extend for default params
-  */
-  var defaults = function(destination, source) {
+  /* check and extend params
+   */
+  var defaultParams = function(destination, source, callback) {
+
     destination = destination || {};
     for (var property in source) {
-      if(typeof destination[property] === "undefined") {
+      if(typeof destination[property] === 'undefined') {
         destination[property] = source[property];
       }
     }
@@ -65,9 +66,6 @@ var WIO = function(params) {
           // on read from different adapter
           res.meta.modifiedDate = res.meta.modifiedDate || new Date('1970-01-01').toISOString();
 
-          console.log(new Date(res.meta.modifiedDate));
-          console.log(new Date(newestRes.meta.modifiedDate));
-
           // compare newest response with current response file
           if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
 
@@ -84,14 +82,15 @@ var WIO = function(params) {
       if(i < adapters.length - 1) {
         // start with the second adapter
         i++;
-        return WIO.adapters[adapters[i]][run](params, runner);
+        return wio.adapters[adapters[i]][run](params, runner);
       } else {
 
         if(run === 'read') {
 
           if(newestAdapter) {
 
-            // TODO run update method in all adapters that have an older version
+            // run update method on all adapters
+            // that have an older version
 
             updateAdapters.splice(updateAdapters.indexOf(newestAdapter), 1);
 
@@ -99,11 +98,7 @@ var WIO = function(params) {
               path: params.path,
               content: newestRes.content,
               meta: newestRes.meta
-            }, function() {
-              console.log('done updating old adapters');
             });
-
-            console.log(updateAdapters);
 
           }
 
@@ -115,14 +110,21 @@ var WIO = function(params) {
     };
 
     // run the first adapter
-    WIO.adapters[adapters[i]][run](params, runner);
+    wio.adapters[adapters[i]][run](params, runner);
 
 
   };
 
   var authorize = function(params, callback) {
 
-    params = defaults(params, {
+    // if the params are missing
+    // but the callback is not
+    if(typeof(params) == 'function') {
+      callback = params;
+      params = {};
+    }
+
+    params = defaultParams(params, {
       silent: false
     });
 
@@ -133,120 +135,75 @@ var WIO = function(params) {
 
   var read = function(params, callback) {
 
-    params = defaults(params, {});
+    if(typeof(params) == 'function') {
+      callback = params;
+      params = {};
+    }
+
+    params = defaultParams(params, {});
 
     // async run adapters
     runAdapters(adapters, 'read', params, callback);
 
   };
 
+  var list = function(params, callback) {
+
+    if(typeof(params) == 'function') {
+      callback = params;
+      params = {};
+    }
+
+    params = defaultParams(params, {});
+
+    // async run adapters
+    runAdapters(adapters, 'list', params, callback);
+
+  };
+
   var update = function(params, callback) {
 
-    params = defaults(params, {});
+    if(typeof(params) == 'function') {
+      callback = params;
+      params = {};
+    }
+
+    params = defaultParams(params, {});
 
     // async run adapters
     runAdapters(adapters, 'update', params, callback);
 
   };
 
-//   var read = function(params, callback) {
-//
-//     params = defaults(params, {
-//       path: ''
-//     });
-//
-//     adapter.read(params, function(err, file) {
-//
-//       file = file || {};
-//       file.path = params.path;
-//
-//       // do offline stuff
-//       offlineAdapter.read(file, function(err, response) {
-//         if(err) return false;
-//
-//         // if the offline cached version is newer, update the remote one
-//         if(response.updateRemote) {
-//           adapter.update({
-//             path: file.path,
-//             content: response.file.content
-//           }, function(err, response) {
-//             console.log('cache update error', err);
-//             console.log('cache update response', response);
-//           });
-//         }
-//       });
-//
-//       callback(err, file);
-//
-//     });
-//
-//   };
-
-//
-// 	var update = function(params, callback) {
-//
-// 		params = defaults(params, {
-// 			path: '',
-// 			content: ''
-// 		});
-//
-// 		adapter.update(params, function(err, meta) {
-//
-// 			params.meta = meta;
-//
-// 			// do offline stuff
-// 			offlineAdapter.update(params, function(err, response) {
-// 				if(err) return false;
-// 			});
-//
-// 			callback(err, params);
-//
-// 		});
-//
-// 	};
-//
-// 	var remove = function(params, callback) {
-//
-// 		params = defaults(params, {
-// 			path: ''
-// 		});
-//
-// 		adapter.remove(params, function(err, file) {
-//
-// 			// offline stuff
-//
-// 			callback(err, file);
-//
-// 		});
-//
-// 	};
-
   // TODO list
+
+  // TODO remove
 
   //console.log(params.adapters);
 
   // public methods
-  wio = {
+  var methods = {
     authorize: authorize,
+    list: list,
     read: read,
     update: update
 
-// 		remove: remove
+//  remove: remove
   }
 
   // init adapters, and allow them to manipulate public methods
   var adapters = params.adapters;
   adapters.forEach(function(adapterName) {
-    WIO.adapters[adapterName].init(params.options[adapterName], wio);
+    wio.adapters[adapterName].init(params.options[adapterName], methods);
   });
 
-  return wio;
+  return methods;
 
 };
 
-WIO.adapters = {};
+wio.adapters = {};
 
-WIO.adapter = function(id, obj) {
+wio.adapter = function(id, obj) {
 
   // TODO check if adapter has all required methods
 
@@ -260,6 +217,6 @@ WIO.adapter = function(id, obj) {
     }
     });
 
-    WIO.adapters[id] = obj;
+    wio.adapters[id] = obj;
 
 };

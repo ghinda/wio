@@ -5,12 +5,6 @@ var mountFolder = function (connect, dir) {
   return connect.static(require('path').resolve(dir));
 };
 
-// # Globbing
-// for performance reasons we're only matching one level down:
-// 'test/spec/{,*/}*.js'
-// use this if you want to recursively match all subfolders:
-// 'test/spec/**/*.js'
-
 module.exports = function (grunt) {
   // load all grunt tasks
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
@@ -30,13 +24,13 @@ module.exports = function (grunt) {
     watch: {
       livereload: {
         options: {
-        livereload: LIVERELOAD_PORT
+          livereload: LIVERELOAD_PORT
         },
         files: [
-        '<%= yeoman.app %>/{,*/}*.html',
-        '{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css',
-        '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
-        '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
+          '<%= yeoman.app %>/{,*/}*.html',
+          '{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css',
+          '{.tmp,<%= yeoman.app %>}/{,*/}*.js',
+          '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
         ]
       }
     },
