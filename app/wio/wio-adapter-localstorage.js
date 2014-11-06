@@ -15,6 +15,28 @@ wio.adapter('localstorage', (function() {
 
   };
 
+  var list = function(params,  callback) {
+
+    var files = [];
+
+    // get all files in localstorage
+    var i = 0;
+    var fileName;
+    var storageContent;
+
+    for (i = 0; fileName = window.localStorage.key(i); i++) {
+
+      if(fileName.indexOf(params.path) !== -1) {
+        storageContent = window.localStorage.getItem(fileName);
+        files.push(JSON.parse(storageContent.meta));
+      }
+
+    }
+
+    callback(null, files);
+
+  };
+
   var read = function(params,  callback) {
 
     var file = storage.getItem(params.path) || '{ "meta": {} }';
@@ -56,6 +78,7 @@ wio.adapter('localstorage', (function() {
 
   return {
     authorize: authorize,
+    list: list,
     read: read,
     update: update,
 

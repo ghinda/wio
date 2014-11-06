@@ -77,7 +77,11 @@ wio.adapter('gdrive', (function() {
 
     var finder = function() {
 
-      var mimeType = (i === parsedPath.length - 1) ? false : 'application/vnd.google-apps.folder';
+      var mimeType = false;
+
+      if(i === parsedPath.length - 1) {
+        mimeType = 'application/vnd.google-apps.folder';
+      }
 
       var q = 'title="' + parsedPath[i] + '" AND trashed=false';
 
@@ -110,7 +114,9 @@ wio.adapter('gdrive', (function() {
 
           } else {
 
-            if(callback) callback(null, response.items[0]);
+            if(callback) {
+              callback(null, response.items[0]);
+            }
 
           }
 
@@ -133,6 +139,45 @@ wio.adapter('gdrive', (function() {
     };
 
     finder();
+
+  };
+
+  var list = function(params, callback) {
+
+    find(params.path, function(err, fileMeta) {
+
+      if(err) {
+        callback(err);
+        return false;
+      }
+
+      console.log(fileMeta.id);
+
+      var request = gapi.client.drive.files.list({
+        q: '"' + fileMeta.id + '" in parents'
+      });
+
+      request.execute(function(list) {
+
+        if(list.items && list.items.length) {
+
+          if(callback) {
+            callback(null, list.items);
+          }
+
+        } else {
+
+          if(callback) {
+            callback({
+              error: '404'
+            });
+          }
+
+        }
+
+      });
+
+    });
 
   };
 
@@ -375,6 +420,7 @@ wio.adapter('gdrive', (function() {
   return {
     authorize: authorize,
     read: read,
+    list: list,
     update: update,
     remove: remove,
 

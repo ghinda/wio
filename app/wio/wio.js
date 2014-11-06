@@ -77,12 +77,22 @@ var wio = function(params) {
 
         }
 
+      } else {
+
+        // TODO do some minimal conflict resolution
+        // for LIST
+        // when we're getting different lists of files from
+        // different adapters
+        newestRes = res;
+
       }
 
       if(i < adapters.length - 1) {
+
         // start with the second adapter
         i++;
         return wio.adapters[adapters[i]][run](params, runner);
+
       } else {
 
         if(run === 'read') {
@@ -174,8 +184,6 @@ var wio = function(params) {
     runAdapters(adapters, 'update', params, callback);
 
   };
-
-  // TODO list
 
   // TODO remove
 

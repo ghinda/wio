@@ -43,17 +43,26 @@ io.authorize(function(err, response) {
 
   if(err) return false;
 
-  io.read({
-    path: 'rssr/read.json'
+  io.list({
+    path: 'poze'
   }, function(err, response) {
 
-    console.log('read');
-
-    console.log(err);
-
-    console.log(response);
+    console.log('list', err, response);
 
   });
+
+
+//   io.read({
+//     path: 'rssr/read.json'
+//   }, function(err, response) {
+//
+//     console.log('read');
+//
+//     console.log(err);
+//
+//     console.log(response);
+//
+//   });
 
 //   io.list({
 //     path: 'rssr'

@@ -43,6 +43,7 @@ wio.adapter('crypto', (function() {
 
   return {
     authorize: blank,
+    list: blank,
     read: blank,
     update: blank,
 
