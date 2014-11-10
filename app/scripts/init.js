@@ -5,8 +5,8 @@
 var io = new wio({
   adapters: [
     'crypto',
-    'localstorage',
-    'gdrive'
+    'gdrive',
+    'localstorage'
   ],
   options: {
     'gdrive': {
