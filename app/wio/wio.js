@@ -47,7 +47,9 @@ var wio = function(params) {
 
       if(err) {
         // TODO find a way to run all adapters,
-        // even if one is retunrning an error
+        // even if one is retunrning an error.
+        // maybe only throw an error if the error is reported
+        // by all the adapters
         console.warn(adapters[i], err);
         //return callback(err);
       }
