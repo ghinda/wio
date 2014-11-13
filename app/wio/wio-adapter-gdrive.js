@@ -79,7 +79,8 @@ wio.adapter('gdrive', (function() {
 
       var mimeType = false;
 
-      if(i === parsedPath.length - 1) {
+      //if(i === parsedPath.length - 1) {
+      if(i !== parsedPath.length - 1) {
         mimeType = 'application/vnd.google-apps.folder';
       }
 
@@ -150,8 +151,6 @@ wio.adapter('gdrive', (function() {
         callback(err);
         return false;
       }
-
-      console.log(fileMeta.id);
 
       var request = gapi.client.drive.files.list({
         q: '"' + fileMeta.id + '" in parents'
@@ -379,7 +378,7 @@ wio.adapter('gdrive', (function() {
 
   };
 
-  var remove = function(params, callback) {
+  var del = function(params, callback) {
 
     find(params.path, function(err, fileMeta) {
 
@@ -422,7 +421,7 @@ wio.adapter('gdrive', (function() {
     read: read,
     list: list,
     update: update,
-    remove: remove,
+    delete: del,
 
     init: init
   }

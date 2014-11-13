@@ -29,9 +29,16 @@ wio.adapter('crypto', (function() {
 
       prevRead(params, function(err, res) {
 
+        if(err) {
+          callback(err);
+          return false;
+        }
+
         // TODO on read, decode after
         // TODO on write, encode before
-        res.content += 'CRYPTO';
+        if(res.content) {
+          res.content += 'CRYPTO';
+        }
 
         callback(err, res);
 
@@ -46,6 +53,7 @@ wio.adapter('crypto', (function() {
     list: blank,
     read: blank,
     update: blank,
+    delete: blank,
 
     init: init
   }

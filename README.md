@@ -43,3 +43,6 @@ io.authorize({}, function(err, response) {
 
 });
 ```
+
+The order of the `adapters` matters only for the `list` request.
+

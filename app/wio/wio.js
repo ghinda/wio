@@ -46,7 +46,10 @@ var wio = function(params) {
     var runner = function(err, res) {
 
       if(err) {
-        return callback(err);
+        // TODO find a way to run all adapters,
+        // even if one is retunrning an error
+        console.warn(adapters[i], err);
+        //return callback(err);
       }
 
       if(run === 'read') {
@@ -77,12 +80,36 @@ var wio = function(params) {
 
         }
 
+      } if(run === 'list') {
+
+        // consider the order of the adapters
+        // and if the the other adapters return any values
+        if(newestRes.length) {
+
+          // if we already have a response
+          // check if the current adapter is higher in the list
+          if(res.length && adapters.indexOf(adapters[i]) < adapters.indexOf(newestAdapter)) {
+
+            newestRes = res;
+            newestAdapter = adapters[i];
+
+          }
+
+        } else if(res.length) {
+
+          // set the first value, if we don't have anything else
+          newestRes = res;
+          newestAdapter = adapters[i];
+
+        } else {
+
+          // else just return an empty array
+          newestRes = [];
+
+        }
+
       } else {
 
-        // TODO do some minimal conflict resolution
-        // for LIST
-        // when we're getting different lists of files from
-        // different adapters
         newestRes = res;
 
       }
@@ -185,18 +212,27 @@ var wio = function(params) {
 
   };
 
-  // TODO remove
+  var del = function(params, callback) {
 
-  //console.log(params.adapters);
+    if(typeof(params) == 'function') {
+      callback = params;
+      params = {};
+    }
+
+    params = defaultParams(params, {});
+
+    // async run adapters
+    runAdapters(adapters, 'delete', params, callback);
+
+  };
 
   // public methods
   var methods = {
     authorize: authorize,
     list: list,
     read: read,
-    update: update
-
-//  remove: remove
+    update: update,
+    delete: del
   }
 
   // init adapters, and allow them to manipulate public methods
