@@ -247,6 +247,10 @@ var wio = function(params) {
 
   var del = function(params, callback) {
 
+    // TODO make sure we send a default callback
+    // empty function, in all adapters
+    // and remove if(callback) checks
+
     if(typeof(params) === 'function') {
       callback = params;
       params = {};
