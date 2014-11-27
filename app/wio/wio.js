@@ -9,7 +9,7 @@ var wio = function(params) {
   /* normalize metadata
    */
   var normalize = function(meta) {
-    normalizedMeta = JSON.parse(JSON.stringify(meta));
+    var normalizedMeta = JSON.parse(JSON.stringify(meta));
 
     // createdDate
     normalizedMeta.createdDate = meta.createdDate;
@@ -34,24 +34,73 @@ var wio = function(params) {
     return destination;
   };
 
-  // async run all adapters
+  // parallel run adapters
   var runAdapters = function(adapters, run, params, callback) {
 
-    var i = 0;
     var newestRes = {};
     var newestAdapter;
+    var errors = {};
 
     var updateAdapters = adapters.slice();
 
+    var ranAdapters = [];
+    var checkRanAdapters = function() {
+
+      if(ranAdapters.length === adapters.length) {
+
+        if(run === 'read') {
+
+          if(newestAdapter) {
+
+            // run update method on all adapters
+            // that have an older version
+            updateAdapters.splice(updateAdapters.indexOf(newestAdapter), 1);
+
+            runAdapters(updateAdapters, 'update', {
+              path: params.path,
+              content: newestRes.content,
+              meta: newestRes.meta
+            });
+
+          }
+
+        }
+
+        if(Object.keys(errors).length === 0) {
+          errors = null;
+        }
+
+        if(callback) {
+
+          // delete private properties
+          // so they don't show up in the response
+          if(newestRes && newestRes._adapter) {
+            delete newestRes._adapter;
+          }
+
+          return callback(errors, newestRes);
+        }
+
+      }
+
+    };
+
     var runner = function(err, res) {
 
+      var adapter = res._adapter;
+
+      // add the adapter to the list of ran adapters
+      ranAdapters.push(adapter);
+
       if(err) {
-        // TODO find a way to run all adapters,
-        // even if one is retunrning an error.
-        // maybe only throw an error if the error is reported
-        // by all the adapters
-        console.warn(adapters[i], err);
-        //return callback(err);
+        // if the adapter has responded with an error
+        // warn and add it to the errors object
+        console.warn(adapter, err);
+
+        errors[adapter] = err;
+        checkRanAdapters();
+
+        return false;
       }
 
       if(run === 'read') {
@@ -60,9 +109,12 @@ var wio = function(params) {
           newestRes = res;
         }
 
+        /* TODO still relevant with new error structure?
         // if we don't return the meta property from the adapter
         // it means we don't want it compared
         // or messed with - eg. crypto
+        */
+
         if(newestRes.meta && res.meta) {
 
           // force oldest date
@@ -76,7 +128,7 @@ var wio = function(params) {
 
             // return the newest response
             newestRes = res;
-            newestAdapter = adapters[i];
+            newestAdapter = adapter;
 
           }
 
@@ -90,10 +142,10 @@ var wio = function(params) {
 
           // if we already have a response
           // check if the current adapter is higher in the list
-          if(res.length && adapters.indexOf(adapters[i]) < adapters.indexOf(newestAdapter)) {
+          if(res.length && adapters.indexOf(adapter) < adapters.indexOf(newestAdapter)) {
 
             newestRes = res;
-            newestAdapter = adapters[i];
+            newestAdapter = adapter;
 
           }
 
@@ -101,7 +153,7 @@ var wio = function(params) {
 
           // set the first value, if we don't have anything else
           newestRes = res;
-          newestAdapter = adapters[i];
+          newestAdapter = adapter;
 
         } else {
 
@@ -116,41 +168,18 @@ var wio = function(params) {
 
       }
 
-      if(i < adapters.length - 1) {
-
-        // start with the second adapter
-        i++;
-        return wio.adapters[adapters[i]][run](params, runner);
-
-      } else {
-
-        if(run === 'read') {
-
-          if(newestAdapter) {
-
-            // run update method on all adapters
-            // that have an older version
-
-            updateAdapters.splice(updateAdapters.indexOf(newestAdapter), 1);
-
-            runAdapters(updateAdapters, 'update', {
-              path: params.path,
-              content: newestRes.content,
-              meta: newestRes.meta
-            });
-
-          }
-
-        }
-
-        return callback(err, newestRes);
-      }
+      checkRanAdapters();
 
     };
 
-    // run the first adapter
-    wio.adapters[adapters[i]][run](params, runner);
-
+    // run adapters
+    adapters.forEach(function(adapter) {
+      wio.adapters[adapter][run](params, function(err, res) {
+        res = res || {};
+        res._adapter = adapter;
+        runner(err,res);
+      });
+    });
 
   };
 
@@ -158,7 +187,7 @@ var wio = function(params) {
 
     // if the params are missing
     // but the callback is not
-    if(typeof(params) == 'function') {
+    if(typeof(params) === 'function') {
       callback = params;
       params = {};
     }
@@ -174,7 +203,7 @@ var wio = function(params) {
 
   var read = function(params, callback) {
 
-    if(typeof(params) == 'function') {
+    if(typeof(params) === 'function') {
       callback = params;
       params = {};
     }
@@ -188,7 +217,7 @@ var wio = function(params) {
 
   var list = function(params, callback) {
 
-    if(typeof(params) == 'function') {
+    if(typeof(params) === 'function') {
       callback = params;
       params = {};
     }
@@ -202,12 +231,14 @@ var wio = function(params) {
 
   var update = function(params, callback) {
 
-    if(typeof(params) == 'function') {
+    if(typeof(params) === 'function') {
       callback = params;
       params = {};
     }
 
-    params = defaultParams(params, {});
+    params = defaultParams(params, {
+      content: ''
+    });
 
     // async run adapters
     runAdapters(adapters, 'update', params, callback);
@@ -216,7 +247,7 @@ var wio = function(params) {
 
   var del = function(params, callback) {
 
-    if(typeof(params) == 'function') {
+    if(typeof(params) === 'function') {
       callback = params;
       params = {};
     }
@@ -235,7 +266,7 @@ var wio = function(params) {
     read: read,
     update: update,
     delete: del
-  }
+  };
 
   // init adapters, and allow them to manipulate public methods
   var adapters = params.adapters;
@@ -250,19 +281,22 @@ var wio = function(params) {
 wio.adapters = {};
 
 wio.adapter = function(id, obj) {
+  'use strict';
 
   // TODO check if adapter has all required methods
 
   // methods required to implement a wio adapter
-    var implementing = 'authorize'.split(' ');
+  var implementing = [
+    'authorize'
+  ];
 
-    // mix in the adapter
-    implementing.forEach(function(prop) {
-        if(!obj.hasOwnProperty(prop)) {
-      throw 'Invalid adapter! Missing method: ' + prop
+  // mix in the adapter
+  implementing.forEach(function(prop) {
+    if(!obj.hasOwnProperty(prop)) {
+      throw 'Invalid adapter *' + id + '*! Missing method: ' + prop;
     }
-    });
+  });
 
-    wio.adapters[id] = obj;
+  wio.adapters[id] = obj;
 
 };

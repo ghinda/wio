@@ -5,6 +5,7 @@
 */
 
 wio.adapter('localstorage', (function() {
+  'use strict';
 
   var storage = window.localStorage;
 
@@ -24,11 +25,20 @@ wio.adapter('localstorage', (function() {
     var fileName;
     var storageContent;
 
-    for (i = 0; fileName = window.localStorage.key(i); i++) {
+    for (i = 0; i < localStorage.length; i++) {
+
+      fileName = window.localStorage.key(i);
 
       if(fileName.indexOf(params.path) !== -1) {
+
         storageContent = window.localStorage.getItem(fileName);
-        files.push(JSON.parse(storageContent.meta));
+
+        if(storageContent) {
+          storageContent = JSON.parse(storageContent);
+
+          files.push(storageContent.meta);
+        }
+
       }
 
     }
@@ -39,11 +49,19 @@ wio.adapter('localstorage', (function() {
 
   var read = function(params,  callback) {
 
-    var file = storage.getItem(params.path) || '{ "meta": {} }';
+    var err = null;
+    var file = storage.getItem(params.path);
+
+    if(file) {
+      file = JSON.parse(file);
+    } else {
+      err = new Error('File ' + params.path + ' not found in localstorage!');
+
+    }
 
     // don't return an error, maybe the file is in another adapter
 
-    callback(null, JSON.parse(file));
+    callback(err, file);
 
   };
 
@@ -64,7 +82,7 @@ wio.adapter('localstorage', (function() {
     
     storage.setItem(params.path, JSON.stringify(file));
 
-    console.log('local file', file);
+    //console.log('local file', file);
 
     callback(null, file);
 
@@ -92,5 +110,6 @@ wio.adapter('localstorage', (function() {
     delete: del,
 
     init: init
-  }
+  };
+
 })());

@@ -5,10 +5,11 @@
 */
 
 wio.adapter('gdrive', (function() {
+  'use strict';
 
-  var clientId,
-    apiKey,
-    scopes = 'https://www.googleapis.com/auth/drive';
+  var clientId;
+  var apiKey;
+  var scopes = 'https://www.googleapis.com/auth/drive';
 
   var authorize = function(params, callback) {
 
@@ -23,13 +24,21 @@ wio.adapter('gdrive', (function() {
         }, function(authResult) {
 
           if (authResult && !authResult.error) {
-            // Access token has been successfully retrieved, requests can be sent to the API.
-            if(callback) callback(null, authResult);
+
+            // access token has been successfully retrieved
+            if(callback) {
+              callback(null, authResult);
+            }
 
           } else {
-            // No access token could be retrieved, show the button to start the authorization flow.
-            if(callback) callback(authResult);
-          };
+
+            // no access token could be retrieved
+            // show the button to start the authorization flow.
+            if(callback) {
+              callback(authResult);
+            }
+
+          }
 
         });
 
@@ -38,7 +47,7 @@ wio.adapter('gdrive', (function() {
     };
 
     // check if api is really loaded
-    if(typeof window['gapi'] === 'undefined') {
+    if(typeof window.gapi === 'undefined') {
       // async load google api
       var script = document.createElement('script');
       script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient');
@@ -88,11 +97,11 @@ wio.adapter('gdrive', (function() {
 
       if(lastParent) {
         q += ' AND "' + lastParent.id + '" in parents';
-      };
+      }
 
       if(mimeType) {
         q += ' AND mimeType="' + mimeType + '"';
-      };
+      }
 
       var request = gapi.client.drive.files.list({
         q: q
@@ -215,7 +224,9 @@ wio.adapter('gdrive', (function() {
 
           xhr.onerror = function(response) {
 
-            if(callback) callback(response);
+            if(callback) {
+              callback(response);
+            }
 
           };
 
@@ -229,7 +240,7 @@ wio.adapter('gdrive', (function() {
   };
 
   var utf8_to_b64 = function(str) {
-    return window.btoa(unescape(encodeURIComponent( str )));
+    return window.btoa(window.unescape(window.encodeURIComponent(str)));
   };
 
   var isB64 = function(str) {
@@ -281,11 +292,15 @@ wio.adapter('gdrive', (function() {
         request.execute(function(response) {
 
           if(response.error) {
-            callback && callback(response);
+            if(callback) {
+              callback(response);
+            }
             return false;
           }
 
-          callback && callback(null, response);
+          if(callback) {
+            callback(null, response);
+          }
 
         });
 
@@ -320,7 +335,7 @@ wio.adapter('gdrive', (function() {
 
           makeRequest();
 
-        }
+        };
 
       }
 
@@ -424,5 +439,6 @@ wio.adapter('gdrive', (function() {
     delete: del,
 
     init: init
-  }
+  };
+
 })());

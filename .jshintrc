@@ -19,14 +19,7 @@
   "trailing": true,
   "smarttabs": true,
   "globals": {
-    "app": true,
-    "angular": false,
-    "$": false,
-    "jQuery": false,
-    "ga": false,
-    "moment": true,
-    "Prism": true,
-    "Spinner": true,
-    "ZeroClipboard": true
+    "wio": true,
+    "gapi": true
   }
 }

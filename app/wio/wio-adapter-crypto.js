@@ -5,6 +5,7 @@
 */
 
 wio.adapter('crypto', (function() {
+  'use strict';
 
   var blank = function(params, callback) {
 
@@ -56,5 +57,6 @@ wio.adapter('crypto', (function() {
     delete: blank,
 
     init: init
-  }
+  };
+  
 })());
