@@ -70,9 +70,9 @@ wio.adapter('gdrive', (function() {
 
     var parsedPath = path.split('/');
 
-    var i = 0,
-      lastParent,
-      currentPath = '';
+    var index = 0;
+    var lastParent;
+    var currentPath = '';
 
     // if first item is blank, because url starts with /
     // use 'root' parent, to start searching from the root
@@ -84,16 +84,24 @@ wio.adapter('gdrive', (function() {
       currentPath += '/';
     }
 
+    // remove empty array items
+    var i;
+    for(i = parsedPath.length - 1; i >= 0; i--) {
+      if(parsedPath[i] === '') {
+        parsedPath.splice(i, 1);
+      }
+    }
+
     var finder = function() {
 
       var mimeType = false;
 
-      //if(i === parsedPath.length - 1) {
-      if(i !== parsedPath.length - 1) {
+      //if(index === parsedPath.length - 1) {
+      if(index !== parsedPath.length - 1) {
         mimeType = 'application/vnd.google-apps.folder';
       }
 
-      var q = 'title="' + parsedPath[i] + '" AND trashed=false';
+      var q = 'title="' + parsedPath[index] + '" AND trashed=false';
 
       if(lastParent) {
         q += ' AND "' + lastParent.id + '" in parents';
@@ -109,12 +117,12 @@ wio.adapter('gdrive', (function() {
 
       request.execute(function(response) {
 
-        currentPath += parsedPath[i];
+        currentPath += parsedPath[index];
 
         if(response.items && response.items.length) {
 
-          i++;
-          if(i < parsedPath.length) {
+          index++;
+          if(index < parsedPath.length) {
 
             lastParent = response.items[0];
             finder();
@@ -162,7 +170,7 @@ wio.adapter('gdrive', (function() {
       }
 
       var request = gapi.client.drive.files.list({
-        q: '"' + fileMeta.id + '" in parents'
+        q: '"' + fileMeta.id + '" in parents  AND trashed=false'
       });
 
       request.execute(function(list) {
@@ -243,10 +251,6 @@ wio.adapter('gdrive', (function() {
     return window.btoa(window.unescape(window.encodeURIComponent(str)));
   };
 
-  var isB64 = function(str) {
-    return /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(str);
-  };
-
   var update = function(params, callback) {
 
     var fileMeta = {};
@@ -308,18 +312,11 @@ wio.adapter('gdrive', (function() {
 
       var base64Data;
 
-      if(typeof(params.content) === 'string') {
+      if(typeof params.content === 'string') {
 
-        // just text or base64
-        if(isB64(params.content)) {
+        // convert strings to b64
 
-          base64Data = params.content;
-
-        } else {
-
-          base64Data = utf8_to_b64(params.content);
-
-        }
+        base64Data = utf8_to_b64(params.content);
 
         makeRequest();
 
@@ -428,6 +425,7 @@ wio.adapter('gdrive', (function() {
 
     clientId = options.clientId;
     apiKey = options.apiKey;
+    scopes = options.scopes || scopes;
 
   };
 

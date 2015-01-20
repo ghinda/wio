@@ -12,20 +12,34 @@
       'localstorage'
     ],
     options: {
-      'gdrive': {
+      gdrive: {
+        //scopes: 'https://www.googleapis.com/auth/drive.file',
         clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
       }
     }
   });
 
-  io.authorize(function(err, response) {
+  io.authorize({
+    //silent: true
+  },function(err, authRes) {
 
     if(err) {
       return false;
     }
 
+    io.list({
+      path: 'rssr/'
+    }, function(err, response) {
+
+      console.log('list', err, response);
+
+    });
+
+    return false;
+
     io.update({
-      path: 'rssr/test.json'
+      path: 'rssr/test.json',
+      content: 'test'
     }, function(err, response) {
 
       console.log('update', err, response);
@@ -45,14 +59,6 @@
         });
 
       });
-
-    });
-
-    io.list({
-      path: 'rssr/'
-    }, function(err, response) {
-
-      console.log('list', err, response);
 
     });
 

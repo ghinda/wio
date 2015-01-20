@@ -18,6 +18,8 @@ wio.adapter('localstorage', (function() {
 
   var list = function(params,  callback) {
 
+    // `list` should always return at least an empty array
+    // or an error, if there's something wrong with the path
     var files = [];
 
     // get all files in localstorage
@@ -55,7 +57,11 @@ wio.adapter('localstorage', (function() {
     if(file) {
       file = JSON.parse(file);
     } else {
-      err = new Error('File ' + params.path + ' not found in localstorage!');
+
+      err = {
+        status: '404',
+        path: params.path
+      };
 
     }
 

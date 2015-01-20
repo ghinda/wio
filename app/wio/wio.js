@@ -39,13 +39,14 @@ var wio = function(params) {
 
     var newestRes = {};
     var newestAdapter;
-    var errors = {};
+    var errors = [];
 
     var updateAdapters = adapters.slice();
 
     var ranAdapters = [];
     var checkRanAdapters = function() {
 
+      // ran all adapters
       if(ranAdapters.length === adapters.length) {
 
         if(run === 'read') {
@@ -66,7 +67,7 @@ var wio = function(params) {
 
         }
 
-        if(Object.keys(errors).length === 0) {
+        if(errors.length === 0) {
           errors = null;
         }
 
@@ -97,7 +98,11 @@ var wio = function(params) {
         // warn and add it to the errors object
         console.warn(adapter, err);
 
-        errors[adapter] = err;
+        errors.push({
+          adapter: adapter,
+          error: err
+        });
+
         checkRanAdapters();
 
         return false;
@@ -105,7 +110,9 @@ var wio = function(params) {
 
       if(run === 'read') {
 
-        if(!newestRes.meta && res.meta) {
+        // if newestRes does not have the meta property
+        // it's probably still blank
+        if(!newestRes.meta) {
           newestRes = res;
         }
 
@@ -142,23 +149,18 @@ var wio = function(params) {
 
           // if we already have a response
           // check if the current adapter is higher in the list
-          if(res.length && adapters.indexOf(adapter) < adapters.indexOf(newestAdapter)) {
+          if(adapters.indexOf(adapter) < adapters.indexOf(newestAdapter)) {
 
             newestRes = res;
             newestAdapter = adapter;
 
           }
 
-        } else if(res.length) {
+        } else {
 
           // set the first value, if we don't have anything else
           newestRes = res;
           newestAdapter = adapter;
-
-        } else {
-
-          // else just return an empty array
-          newestRes = [];
 
         }
 
@@ -187,7 +189,7 @@ var wio = function(params) {
 
     // if the params are missing
     // but the callback is not
-    if(typeof(params) === 'function') {
+    if(typeof params === 'function') {
       callback = params;
       params = {};
     }
@@ -203,7 +205,7 @@ var wio = function(params) {
 
   var read = function(params, callback) {
 
-    if(typeof(params) === 'function') {
+    if(typeof params === 'function') {
       callback = params;
       params = {};
     }
@@ -217,7 +219,7 @@ var wio = function(params) {
 
   var list = function(params, callback) {
 
-    if(typeof(params) === 'function') {
+    if(typeof params === 'function') {
       callback = params;
       params = {};
     }
@@ -231,7 +233,7 @@ var wio = function(params) {
 
   var update = function(params, callback) {
 
-    if(typeof(params) === 'function') {
+    if(typeof params === 'function') {
       callback = params;
       params = {};
     }
@@ -251,7 +253,7 @@ var wio = function(params) {
     // empty function, in all adapters
     // and remove if(callback) checks
 
-    if(typeof(params) === 'function') {
+    if(typeof params === 'function') {
       callback = params;
       params = {};
     }
