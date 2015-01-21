@@ -1,8 +1,8 @@
 /*
-* wio adapter for
-* Google Drive
-*
-*/
+ * wio adapter for
+ * google drive
+ *
+ */
 
 wio.adapter('gdrive', (function() {
   'use strict';
@@ -92,6 +92,16 @@ wio.adapter('gdrive', (function() {
       }
     }
 
+    // if we have a blank path
+    // just return root
+    if(!parsedPath.length) {
+      if(callback) {
+        callback(null, lastParent);
+      }
+
+      return false;
+    }
+
     var finder = function() {
 
       var mimeType = false;
@@ -101,14 +111,20 @@ wio.adapter('gdrive', (function() {
         mimeType = 'application/vnd.google-apps.folder';
       }
 
-      var q = 'title="' + parsedPath[index] + '" AND trashed=false';
+      var q = '';
+
+      if(parsedPath[index]) {
+        q += 'title="' + parsedPath[index] + '" AND ';
+      }
+
+      q += 'trashed=false ';
 
       if(lastParent) {
-        q += ' AND "' + lastParent.id + '" in parents';
+        q += 'AND "' + lastParent.id + '" in parents ';
       }
 
       if(mimeType) {
-        q += ' AND mimeType="' + mimeType + '"';
+        q += 'AND mimeType="' + mimeType + '"';
       }
 
       var request = gapi.client.drive.files.list({
@@ -131,6 +147,8 @@ wio.adapter('gdrive', (function() {
             currentPath += '/';
 
           } else {
+
+            console.log(response.items);
 
             if(callback) {
               callback(null, response.items[0]);
@@ -170,7 +188,7 @@ wio.adapter('gdrive', (function() {
       }
 
       var request = gapi.client.drive.files.list({
-        q: '"' + fileMeta.id + '" in parents  AND trashed=false'
+        q: '"' + fileMeta.id + '" in parents AND trashed=false'
       });
 
       request.execute(function(list) {

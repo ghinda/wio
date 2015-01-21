@@ -1,7 +1,7 @@
 /*
-* wio.js
-* unified file manipulation api
-*/
+ * wio.js
+ * unified file manipulation api
+ */
 
 var wio = function(params) {
   'use strict';
@@ -20,18 +20,34 @@ var wio = function(params) {
     return normalizedMeta;
   };
 
-  /* check and extend params
-   */
-  var defaultParams = function(destination, source, callback) {
+  // proper defaults for
+  // read/update/list/delete methods
+  var defaults = function(params, defaults, callback) {
 
-    destination = destination || {};
-    for (var property in source) {
-      if(typeof destination[property] === 'undefined') {
-        destination[property] = source[property];
+    // check if we got the callback instead of the params
+    if(typeof params === 'function') {
+      callback = params;
+      params = {};
+    }
+
+    // if callback not defined
+    if(typeof callback === 'undefined') {
+      callback = function(){};
+    }
+
+    // extend not-specified params with defaults
+    params = params || {};
+    for (var property in defaults) {
+      if(typeof params[property] === 'undefined') {
+        params[property] = defaults[property];
       }
     }
 
-    return destination;
+    return {
+      params: params,
+      callback: callback
+    }
+
   };
 
   // parallel run adapters
@@ -71,14 +87,13 @@ var wio = function(params) {
           errors = null;
         }
 
+        // delete private properties
+        // so they don't show up in the response
+        if(newestRes && newestRes._adapter) {
+          delete newestRes._adapter;
+        }
+
         if(callback) {
-
-          // delete private properties
-          // so they don't show up in the response
-          if(newestRes && newestRes._adapter) {
-            delete newestRes._adapter;
-          }
-
           return callback(errors, newestRes);
         }
 
@@ -116,19 +131,7 @@ var wio = function(params) {
           newestRes = res;
         }
 
-        /* TODO still relevant with new error structure?
-        // if we don't return the meta property from the adapter
-        // it means we don't want it compared
-        // or messed with - eg. crypto
-        */
-
-        if(newestRes.meta && res.meta) {
-
-          // force oldest date
-          // in case the file had no date / is nonexistent
-          // so its adapter gets updated
-          // on read from different adapter
-          res.meta.modifiedDate = res.meta.modifiedDate || new Date('1970-01-01').toISOString();
+        if(res.meta && res.meta.modifiedDate) {
 
           // compare newest response with current response file
           if(new Date(res.meta.modifiedDate) > new Date(newestRes.meta.modifiedDate)) {
@@ -187,81 +190,51 @@ var wio = function(params) {
 
   var authorize = function(params, callback) {
 
-    // if the params are missing
-    // but the callback is not
-    if(typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
-    params = defaultParams(params, {
+    params = defaults(params, {
       silent: false
-    });
+    }, callback);
 
     // async run adapters
-    runAdapters(adapters, 'authorize', params, callback);
+    runAdapters(adapters, 'authorize', params.params, params.callback);
 
   };
 
   var read = function(params, callback) {
 
-    if(typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
-    params = defaultParams(params, {});
+    // make sure we have proper defaults
+    params = defaults(params, {}, callback);
 
     // async run adapters
-    runAdapters(adapters, 'read', params, callback);
+    runAdapters(adapters, 'read', params.params, params.callback);
 
   };
 
   var list = function(params, callback) {
 
-    if(typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
-    params = defaultParams(params, {});
+    params = defaults(params, {}, callback);
 
     // async run adapters
-    runAdapters(adapters, 'list', params, callback);
+    runAdapters(adapters, 'list', params.params, params.callback);
 
   };
 
   var update = function(params, callback) {
 
-    if(typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
-    params = defaultParams(params, {
+    params = defaults(params, {
       content: ''
-    });
+    }, callback);
 
     // async run adapters
-    runAdapters(adapters, 'update', params, callback);
+    runAdapters(adapters, 'update', params.params, params.callback);
 
   };
 
   var del = function(params, callback) {
 
-    // TODO make sure we send a default callback
-    // empty function, in all adapters
-    // and remove if(callback) checks
-
-    if(typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
-    params = defaultParams(params, {});
+    params = defaults(params, {}, callback);
 
     // async run adapters
-    runAdapters(adapters, 'delete', params, callback);
+    runAdapters(adapters, 'delete', params.params, params.callback);
 
   };
 
@@ -274,7 +247,8 @@ var wio = function(params) {
     delete: del
   };
 
-  // init adapters, and allow them to manipulate public methods
+  // init adapters, and allow them to manipulate
+  // the public methods
   var adapters = params.adapters;
   adapters.forEach(function(adapterName) {
     wio.adapters[adapterName].init(params.options[adapterName], methods);
@@ -289,15 +263,18 @@ wio.adapters = {};
 wio.adapter = function(id, obj) {
   'use strict';
 
-  // TODO check if adapter has all required methods
-
-  // methods required to implement a wio adapter
-  var implementing = [
-    'authorize'
+  // methods required for a wio adapter
+  var methods = [
+    'init',
+    'authorize',
+    'read',
+    'update',
+    'delete',
+    'list'
   ];
 
-  // mix in the adapter
-  implementing.forEach(function(prop) {
+  // check adapter methods
+  methods.forEach(function(prop) {
     if(!obj.hasOwnProperty(prop)) {
       throw 'Invalid adapter *' + id + '*! Missing method: ' + prop;
     }

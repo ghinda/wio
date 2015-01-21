@@ -19,6 +19,81 @@
     }
   });
 
+  var $list = document.querySelector('.file-list');
+
+  var listFiles = function(path) {
+
+    $list.innerHTML = 'loading..';
+
+    io.list({
+      path: path
+    }, function(err, listRes) {
+
+      console.log('list', err, listRes);
+
+      $list.innerHTML = '';
+
+      // add .. up link
+      if(path !== '/' && path !== '') {
+
+        var $li = document.createElement('li');
+        var $a = document.createElement('a');
+
+        $a.innerHTML = '..';
+
+        $a.href = '#';
+
+        $a.addEventListener('click', function() {
+
+          listFiles('/');
+
+        });
+
+        $li.appendChild($a);
+        $list.appendChild($li);
+
+      }
+
+      listRes.forEach(function(file) {
+
+        var $li = document.createElement('li');
+        var $a = document.createElement('a');
+
+        $a.innerHTML = '<img src="' + file.iconLink + '">' + file.title;
+
+        $li.appendChild($a);
+        $list.appendChild($li);
+
+        // only if file is folder
+        if(file.mimeType !== 'application/vnd.google-apps.folder') {
+          return false;
+        }
+
+        $a.href = '#';
+
+        $a.addEventListener('click', function() {
+
+          var newListPath = path;
+
+          // only if last char isn't already /
+          if(path[path.length - 1] !== '/') {
+            newListPath += '/';
+          }
+
+          newListPath += file.title;
+
+          listFiles(newListPath);
+
+        });
+
+      });
+
+
+    });
+
+
+  };
+
   io.authorize({
     //silent: true
   },function(err, authRes) {
@@ -27,13 +102,7 @@
       return false;
     }
 
-    io.list({
-      path: 'rssr/'
-    }, function(err, response) {
-
-      console.log('list', err, response);
-
-    });
+    listFiles('/');
 
     /*
 

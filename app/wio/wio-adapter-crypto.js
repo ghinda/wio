@@ -1,8 +1,8 @@
 /*
-* wio adapter for
-* Crypto
-*
-*/
+ * wio adapter for
+ * encryption
+ *
+ */
 
 wio.adapter('crypto', (function() {
   'use strict';
@@ -13,10 +13,10 @@ wio.adapter('crypto', (function() {
 
   };
 
-  var init = function(options, w) {
+  var init = function(options, methods) {
 
-    var prevRead = w.read;
-    w.read = function(params, callback) {
+    var prevRead = methods.read;
+    methods.read = function(params, callback) {
 
       prevRead(params, function(err, res) {
 

@@ -1,8 +1,8 @@
 /*
-* wio adapter for
-* LocalStorage
-*
-*/
+ * wio adapter for
+ * localstorage
+ *
+ */
 
 wio.adapter('localstorage', (function() {
   'use strict';
@@ -18,8 +18,8 @@ wio.adapter('localstorage', (function() {
 
   var list = function(params,  callback) {
 
-    // `list` should always return at least an empty array
-    // or an error, if there's something wrong with the path
+    // should return an empty array
+    // TODO or an error, if we can't find the path
     var files = [];
 
     // get all files in localstorage
