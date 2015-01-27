@@ -1,6 +1,6 @@
 /*
- * wio adapter for
- * google drive
+ * google drive apapter
+ * for wio
  *
  */
 
@@ -10,6 +10,20 @@ wio.adapter('gdrive', (function() {
   var clientId;
   var apiKey;
   var scopes = 'https://www.googleapis.com/auth/drive';
+
+  /* normalize metadata
+   */
+  var normalize = function(meta) {
+    var normalizedMeta = JSON.parse(JSON.stringify(meta));
+
+    // createdDate
+    normalizedMeta.createdDate = meta.createdDate;
+
+    // modifiedDate
+    normalizedMeta.modifiedDate = meta.modifiedDate;
+
+    return normalizedMeta;
+  };
 
   var authorize = function(params, callback) {
 
@@ -147,8 +161,6 @@ wio.adapter('gdrive', (function() {
             currentPath += '/';
 
           } else {
-
-            console.log(response.items);
 
             if(callback) {
               callback(null, response.items[0]);

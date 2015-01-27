@@ -88,3 +88,21 @@ This is because of the multiple adapter architecture. While an adapter can retur
 
 `wio` supports both text content or binary data for the files.
 
+
+### WIP Normalized file objects
+
+// From Read/Update/Delete operations
+
+{
+  meta: {
+    path: 'isostring',
+    name: '?',
+    createdDate: 'isostring',
+    modifiedDate: 'isostring',
+    type: 'folder' || 'file'
+  },
+  content: ''
+}
+
+// The list operation returns only the `meta` object, but without nesting it under a `meta` property
+

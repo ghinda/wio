@@ -1,6 +1,6 @@
 /*
- * wio adapter for
- * localstorage
+ * localstorage adapter
+ * for wio
  *
  */
 

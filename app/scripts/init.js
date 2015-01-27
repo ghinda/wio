@@ -8,13 +8,17 @@
   var io = new wio({
     adapters: [
       'crypto',
-      'gdrive',
+      //'gdrive',
+      'dropbox',
       'localstorage'
     ],
     options: {
       gdrive: {
         //scopes: 'https://www.googleapis.com/auth/drive.file',
         clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
+      },
+      dropbox: {
+        appKey: 'bjjs4f9vkw2gqre'
       }
     }
   });
@@ -27,11 +31,22 @@
       return false;
     }
 
+    /*
     io.list({
-      path: 'rssr/'
+      path: '/'
     }, function(err, response) {
 
       console.log('list', err, response);
+
+    });
+    */
+
+    io.delete({
+      path: 'test.json',
+      //content: 'test'
+    }, function(err, response) {
+
+      console.log('read', err, response);
 
     });
 

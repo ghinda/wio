@@ -1,27 +1,13 @@
 /*
- * wio.js
- * unified file manipulation api
+ * wio
+ * JavaScript file API for cloud storage
+ *
  */
 
 var wio = function(params) {
   'use strict';
 
-  /* normalize metadata
-   */
-  var normalize = function(meta) {
-    var normalizedMeta = JSON.parse(JSON.stringify(meta));
-
-    // createdDate
-    normalizedMeta.createdDate = meta.createdDate;
-
-    // modifiedDate
-    normalizedMeta.modifiedDate = meta.modifiedDate;
-
-    return normalizedMeta;
-  };
-
-  // proper defaults for
-  // read/update/list/delete methods
+  // defaults for the public methods
   var defaults = function(params, defaults, callback) {
 
     // check if we got the callback instead of the params
@@ -50,7 +36,7 @@ var wio = function(params) {
 
   };
 
-  // parallel run adapters
+  // parallel adapter run
   var runAdapters = function(adapters, run, params, callback) {
 
     var newestRes = {};
@@ -111,7 +97,7 @@ var wio = function(params) {
       if(err) {
         // if the adapter has responded with an error
         // warn and add it to the errors object
-        console.warn(adapter, err);
+        console.warn('Error from adapter: ' + adapter, err);
 
         errors.push({
           adapter: adapter,
@@ -251,6 +237,9 @@ var wio = function(params) {
   // the public methods
   var adapters = params.adapters;
   adapters.forEach(function(adapterName) {
+
+    params.options[adapterName] = params.options[adapterName] || {};
+
     wio.adapters[adapterName].init(params.options[adapterName], methods);
   });
 

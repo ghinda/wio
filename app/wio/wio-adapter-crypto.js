@@ -1,6 +1,6 @@
 /*
- * wio adapter for
- * encryption
+ * encryption adapter
+ * for wio
  *
  */
 
