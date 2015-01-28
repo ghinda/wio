@@ -43,8 +43,8 @@ var blob = b64toBlob(img, 'image/png');
   var io = new wio({
     adapters: [
       //'crypto',
-      //'gdrive',
-      'dropbox',
+      'gdrive',
+      //'dropbox',
       'localstorage'
     ],
     options: {
@@ -75,20 +75,20 @@ var blob = b64toBlob(img, 'image/png');
     });
 
     io.update({
-      path: 'test.json',
+      path: 'wio/test.json',
       content: 'test',
     }, function(err, updateRes) {
       
       console.log('update', err, updateRes);
       
       io.read({
-        path: 'test.json'
+        path: 'wio/test.json'
       }, function(err, readRes) {
         
         console.log('read', err, readRes);
         
         io.remove({
-          path: 'test.json'
+          path: 'wio/test.json'
         }, function(err, deleteRed) {
           
           console.log('delete', err, deleteRed);

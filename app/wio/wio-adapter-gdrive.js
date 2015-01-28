@@ -1,5 +1,5 @@
 /*
- * google drive apapter
+ * google drive adapter
  * for wio
  *
  */
@@ -12,16 +12,25 @@ wio.adapter('gdrive', (function() {
   var scopes = 'https://www.googleapis.com/auth/drive';
 
   // normalize metadata
-  var normalize = function(meta) {
-    var normalizedMeta = JSON.parse(JSON.stringify(meta));
+  var normalizeMeta = function(meta) {
+    
+    // copy existing metadata
+    var nmeta = JSON.parse(JSON.stringify(meta));
 
-    // createdDate
-    normalizedMeta.createdDate = meta.createdDate;
+    nmeta.modifiedDate = meta.modifiedDate;
+    nmeta.name = meta.title;
+    nmeta.type = 'file';
+    
+    if(meta.mimeType === 'application/vnd.google-apps.folder') {
+      nmeta.type = 'folder';
+    }
+    
+    // placeholder
+    // the path is overwritten before the callback
+    nmeta.path = meta.name;
 
-    // modifiedDate
-    normalizedMeta.modifiedDate = meta.modifiedDate;
-
-    return normalizedMeta;
+    return nmeta;
+    
   };
 
   var authorize = function(params, callback) {
@@ -38,18 +47,13 @@ wio.adapter('gdrive', (function() {
 
           if (authResult && !authResult.error) {
 
-            // access token has been successfully retrieved
-            if(callback) {
-              callback(null, authResult);
-            }
+            // access token successfully retrieved
+            callback(null, authResult);
 
           } else {
 
             // no access token could be retrieved
-            // show the button to start the authorization flow.
-            if(callback) {
-              callback(authResult);
-            }
+            callback(authResult);
 
           }
 
@@ -59,22 +63,30 @@ wio.adapter('gdrive', (function() {
 
     };
 
-    // check if api is really loaded
+    // check if google drive api is loaded
     if(typeof window.gapi === 'undefined') {
-      // async load google api
-      var script = document.createElement('script');
-      script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient');
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+      
+      // async load the google api
+      var $script = document.createElement('script');
+      $script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient');
 
       window.WioCheckGapiClient = function() {
+        
         if(apiKey) {
           gapi.client.setApiKey(apiKey);
         }
 
         auth();
+        
       };
+      
+      var $head = document.getElementsByTagName('head')[0]; 
+      $head.appendChild($script);
+      
     } else {
+      
       auth();
+      
     }
 
   };
@@ -161,23 +173,17 @@ wio.adapter('gdrive', (function() {
 
           } else {
 
-            if(callback) {
-              callback(null, response.items[0]);
-            }
+            callback(null, response.items[0]);
 
           }
 
         } else {
 
-          if(callback) {
-
-            callback({
-              error: '404',
-              path: currentPath,
-              parent: lastParent
-            });
-
-          }
+          callback({
+            error: '404',
+            path: currentPath,
+            parent: lastParent
+          });
 
         }
 
@@ -194,29 +200,36 @@ wio.adapter('gdrive', (function() {
     find(params.path, function(err, fileMeta) {
 
       if(err) {
-        callback(err);
-        return false;
+        return callback(err);
       }
 
       var request = gapi.client.drive.files.list({
         q: '"' + fileMeta.id + '" in parents AND trashed=false'
       });
 
-      request.execute(function(list) {
+      request.execute(function(res) {
 
-        if(list.items && list.items.length) {
+        if(res.items && res.items.length) {
 
-          if(callback) {
-            callback(null, list.items);
+          // make sure we have / as last char
+          var pathStart = params.path;
+          if(pathStart[pathStart.length - 1] !== '/') {
+            pathStart = pathStart + '/';
           }
+          
+          // normalize metadata
+          res.items.forEach(function(item, index) {
+            res.items[index] = normalizeMeta(item);
+            
+            // add full path
+            res.items[index].path = pathStart + res.items[index].name;
+          });
+          
+          callback(null, res.items);
 
         } else {
-
-          if(callback) {
-            callback({
-              error: '404'
-            });
-          }
+          
+          callback(res);
 
         }
 
@@ -231,8 +244,7 @@ wio.adapter('gdrive', (function() {
     find(params.path, function(err, fileMeta) {
 
       if(err) {
-        callback(err);
-        return false;
+        return callback(err);
       }
 
       var request = gapi.client.drive.files.get({
@@ -248,22 +260,23 @@ wio.adapter('gdrive', (function() {
           xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
           xhr.onload = function() {
 
+            var nMeta = normalizeMeta(fileMeta);
+            
+            // add file path
+            nMeta.path = params.path;
+            
             var file = {
               content: xhr.responseText,
-              meta: fileMeta
+              meta: nMeta
             };
 
-            if(callback) {
-              callback(null, file);
-            }
+            callback(null, file);
 
           };
 
-          xhr.onerror = function(response) {
+          xhr.onerror = function(err) {
 
-            if(callback) {
-              callback(response);
-            }
+            callback(err);
 
           };
 
@@ -325,15 +338,15 @@ wio.adapter('gdrive', (function() {
         request.execute(function(response) {
 
           if(response.error) {
-            if(callback) {
-              callback(response);
-            }
-            return false;
+            return callback(response);
           }
 
-          if(callback) {
-            callback(null, response);
-          }
+          var nMeta = normalizeMeta(response);
+          
+          // add full path
+          nMeta.path = params.path;
+          
+          callback(null, nMeta);
 
         });
 
@@ -341,6 +354,7 @@ wio.adapter('gdrive', (function() {
 
       var base64Data;
 
+      // check if string or binary
       if(typeof params.content === 'string') {
 
         // convert strings to b64
@@ -397,9 +411,7 @@ wio.adapter('gdrive', (function() {
           request.execute(function(response) {
 
             if(response.error) {
-
-              console.log(response);
-
+              callback(response);
             } else {
 
               // try again with the full path
@@ -435,11 +447,9 @@ wio.adapter('gdrive', (function() {
       request.execute(function(file) {
 
         if(!file) {
-          callback({
+          return callback({
             error: 'Something went wrong'
           });
-
-          return false;
         }
 
         callback(null, file);
