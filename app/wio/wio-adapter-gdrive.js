@@ -11,8 +11,7 @@ wio.adapter('gdrive', (function() {
   var apiKey;
   var scopes = 'https://www.googleapis.com/auth/drive';
 
-  /* normalize metadata
-   */
+  // normalize metadata
   var normalize = function(meta) {
     var normalizedMeta = JSON.parse(JSON.stringify(meta));
 
@@ -420,7 +419,7 @@ wio.adapter('gdrive', (function() {
 
   };
 
-  var del = function(params, callback) {
+  var remove = function(params, callback) {
 
     find(params.path, function(err, fileMeta) {
 
@@ -464,7 +463,7 @@ wio.adapter('gdrive', (function() {
     read: read,
     list: list,
     update: update,
-    delete: del,
+    remove: remove,
 
     init: init
   };

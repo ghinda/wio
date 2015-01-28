@@ -2,12 +2,47 @@
 * Init
 */
 
+function b64toBlob(b64Data, contentType, sliceSize) {
+  contentType = contentType || '';
+  sliceSize = sliceSize || 512;
+
+  var byteCharacters = atob(b64Data);
+  var byteArrays = [];
+
+  for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+      var byteNumbers = new Array(slice.length);
+      for (var i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+  }
+
+  var blob = new Blob(byteArrays, {type: contentType});
+  return blob;
+}
+
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+context.fillStyle = "green";
+context.fillRect(50, 50, 100, 100);
+var img = canvas.toDataURL("image/png");
+
+img = img.replace(/^data:image\/(png|jpg);base64,/, '');
+
+var blob = b64toBlob(img, 'image/png');
+
+
 (function() {
   'use strict';
 
   var io = new wio({
     adapters: [
-      'crypto',
+      //'crypto',
       //'gdrive',
       'dropbox',
       'localstorage'
@@ -31,106 +66,59 @@
       return false;
     }
 
-    /*
     io.list({
       path: '/'
-    }, function(err, response) {
+    }, function(err, listRes) {
 
-      console.log('list', err, response);
-
-    });
-    */
-
-    io.delete({
-      path: 'test.json',
-      //content: 'test'
-    }, function(err, response) {
-
-      console.log('read', err, response);
+      console.log('list', err, listRes);
 
     });
-
-    /*
 
     io.update({
-      path: 'rssr/test.json',
-      content: 'test'
-    }, function(err, response) {
-
-      console.log('update', err, response);
-
+      path: 'test.json',
+      content: 'test',
+    }, function(err, updateRes) {
+      
+      console.log('update', err, updateRes);
+      
       io.read({
-        path: 'rssr/test.json'
-      }, function(err, response) {
-
-        console.log('read', err, response);
-
-        io.delete({
-          path: 'rssr/test.json'
-        }, function(err, response) {
-
-          console.log('delete', err, response);
-
+        path: 'test.json'
+      }, function(err, readRes) {
+        
+        console.log('read', err, readRes);
+        
+        io.remove({
+          path: 'test.json'
+        }, function(err, deleteRed) {
+          
+          console.log('delete', err, deleteRed);
+          
         });
-
+        
       });
 
-    });
-  */
-
-    /*
-
-    function b64toBlob(b64Data, contentType, sliceSize) {
-      contentType = contentType || '';
-      sliceSize = sliceSize || 512;
-
-      var byteCharacters = atob(b64Data);
-      var byteArrays = [];
-
-      for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-          var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-          var byteNumbers = new Array(slice.length);
-          for (var i = 0; i < slice.length; i++) {
-              byteNumbers[i] = slice.charCodeAt(i);
-          }
-
-          var byteArray = new Uint8Array(byteNumbers);
-
-          byteArrays.push(byteArray);
-      }
-
-      var blob = new Blob(byteArrays, {type: contentType});
-      return blob;
-    }
-
-    var canvas = document.getElementById("canvas");
-    var context = canvas.getContext("2d");
-    context.fillStyle = "green";
-    context.fillRect(50, 50, 100, 100);
-    var img = canvas.toDataURL("image/png");
-
-    img = img.replace(/^data:image\/(png|jpg);base64,/, '');
-
-    var blob = b64toBlob(img, 'image/png');
-    //var blobUrl = URL.createObjectURL(blob);
-
-    wio.update({
-      path: 'rssr/test.png',
-      mimeType: 'image/png',
-      //content: img
-      content: blob
-    }, function(err, response) {
-
-      console.log('update');
-
-      console.log(err);
-
-      console.log(response);
 
     });
+    
+    io.update({
+      path: 'test.png',
+      content: blob,
+      // required for gdrive
+      mimeType: 'image/png'
+    }, function(err, updateRes) {
+      
+      console.log('update binary', err, updateRes);
+      
+      io.read({
+        path: 'test.png'
+      }, function(err, readRes) {
+        
+        console.log('read binary', err, readRes);
+        
+      });
 
-    */
+
+    });
 
   });
 

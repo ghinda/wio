@@ -39,7 +39,7 @@ wio.adapter('crypto', (function() {
     list: blank,
     read: blank,
     update: blank,
-    delete: blank,
+    remove: blank,
 
     init: init
   };

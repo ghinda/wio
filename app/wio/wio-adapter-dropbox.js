@@ -10,51 +10,36 @@ wio.adapter('dropbox', (function() {
   var appKey;
   var client;
 
-  /* normalize file metadata
-   */
-  var normalize = function(meta) {
+  // normalize file meta objects
+  var normalizeMeta = function(meta) {
 
+    // copy original metadata
     var normalizedMeta = JSON.parse(JSON.stringify(meta));
 
-    // createdDate
-    normalizedMeta.createdDate = meta.createdDate;
-
-    // modifiedDate
-    normalizedMeta.modifiedDate = meta.modifiedDate;
+    normalizedMeta.modifiedDate = meta.modifiedAt;
+    
+    normalizedMeta.type = 'file';
+    
+    if(normalizedMeta.isFolder) {
+      normalizedMeta.type = 'folder';
+    }
 
     return normalizedMeta;
     
-  };
-
-  // normalize file lists
-  var normalizeList = function(files) {
-
-    var normalizedList = [];
-    var fileName = '';
-    var lastFolder;
-
-    var i;
-    for(i = 0; i < files.length; i++) {
-
-      lastFolder = files[i].lastIndexOf('/') + 1;
-      fileName = files[i].substring(lastFolder, files[i].length);
-
-      normalizedList.push({
-        path: files[i],
-        name: fileName
-      });
-    }
-
-    return normalizedList;
-
   };
 
   var authorize = function(params, callback) {
 
     var auth = function() {
 
+      var interactive = true;
+      
+      if(typeof params.silent !== 'undefined') {
+        interactive = params.silent;
+      }
+      
       client.authenticate({
-        interactive: params.interactive || true
+        interactive: interactive
       }, function(err, client) {
 
         if(err) {
@@ -99,16 +84,18 @@ wio.adapter('dropbox', (function() {
   };
 
   var list = function(params, callback) {
-
-    client.readdir(params.path, function(err, files) {
+    
+    client.readdir(params.path, params, function(err, files, originMeta, filesMeta) {
 
       if(err) {
         return callback(err);
       }
+      
+      filesMeta.forEach(function(meta, index) {
+        filesMeta[index] = normalizeMeta(meta);
+      });
 
-      files = normalizeList(files);
-
-      callback(null, files);
+      callback(null, filesMeta);
 
     });
 
@@ -116,38 +103,36 @@ wio.adapter('dropbox', (function() {
 
   var read = function(params, callback) {
 
-    client.readFile(params.path, function(err, file, meta) {
+    console.log(params);
+    
+    client.readFile(params.path, params, function(err, file, meta) {
       if(err) {
         return callback(err);
       }
 
       callback(null, {
-        meta: meta,
+        meta: normalizeMeta(meta),
         content: file
       });
     });
 
   };
 
-  var utf8_to_b64 = function(str) {
-    return window.btoa(window.unescape(window.encodeURIComponent(str)));
-  };
-
   var update = function(params, callback) {
 
-    client.writeFile(params.path, params.content,
+    client.writeFile(params.path, params.content, params,
     function(err, meta) {
         if (err) {
           return callback(err);
         }
 
-        callback(null, meta);
+        callback(null, normalizeMeta(meta));
 
     });
 
   };
 
-  var del = function(params, callback) {
+  var remove = function(params, callback) {
 
     client.remove(params.path,
     function(err, meta) {
@@ -155,7 +140,7 @@ wio.adapter('dropbox', (function() {
           return callback(err);
         }
 
-        callback(null, meta);
+        callback(null, normalizeMeta(meta));
 
     });
 
@@ -172,7 +157,7 @@ wio.adapter('dropbox', (function() {
     read: read,
     list: list,
     update: update,
-    delete: del,
+    remove: remove,
 
     init: init
   };

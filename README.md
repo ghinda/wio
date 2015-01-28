@@ -91,17 +91,16 @@ This is because of the multiple adapter architecture. While an adapter can retur
 
 ### WIP Normalized file objects
 
-// From Read/Update/Delete operations
+The file objects for all of the operations will be the one received from the adapter, with the guarantee that you will always have the following format:
 
 {
   meta: {
     path: 'isostring',
-    name: '?',
-    createdDate: 'isostring',
+    name: 'string',
     modifiedDate: 'isostring',
     type: 'folder' || 'file'
   },
-  content: ''
+  content: '..'
 }
 
 // The list operation returns only the `meta` object, but without nesting it under a `meta` property

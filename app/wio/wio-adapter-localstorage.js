@@ -94,7 +94,7 @@ wio.adapter('localstorage', (function() {
 
   };
 
-  var del = function(params,  callback) {
+  var remove = function(params,  callback) {
 
     var file = storage.removeItem(params.path);
 
@@ -113,7 +113,7 @@ wio.adapter('localstorage', (function() {
     list: list,
     read: read,
     update: update,
-    delete: del,
+    remove: remove,
 
     init: init
   };

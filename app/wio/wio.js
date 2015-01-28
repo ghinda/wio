@@ -215,12 +215,12 @@ var wio = function(params) {
 
   };
 
-  var del = function(params, callback) {
+  var remove = function(params, callback) {
 
     params = defaults(params, {}, callback);
 
     // async run adapters
-    runAdapters(adapters, 'delete', params.params, params.callback);
+    runAdapters(adapters, 'remove', params.params, params.callback);
 
   };
 
@@ -230,7 +230,7 @@ var wio = function(params) {
     list: list,
     read: read,
     update: update,
-    delete: del
+    remove: remove
   };
 
   // init adapters, and allow them to manipulate
@@ -258,7 +258,7 @@ wio.adapter = function(id, obj) {
     'authorize',
     'read',
     'update',
-    'delete',
+    'remove',
     'list'
   ];
 
