@@ -252,36 +252,44 @@ wio.adapter('gdrive', (function() {
       });
 
       request.execute(function(file) {
-
-        if (file.downloadUrl) {
-          var accessToken = gapi.auth.getToken().access_token;
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', file.downloadUrl);
-          xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-          xhr.onload = function() {
-
-            var nMeta = normalizeMeta(fileMeta);
-            
-            // add file path
-            nMeta.path = params.path;
-            
-            var file = {
-              content: xhr.responseText,
-              meta: nMeta
-            };
-
-            callback(null, file);
-
-          };
-
-          xhr.onerror = function(err) {
-
-            callback(err);
-
-          };
-
-          xhr.send();
+        
+        var downloadUrl = file.downloadUrl;
+        
+        // in case of google doc
+        // TODO all gdoc formats support pdf, so use that
+        // but we should make this configurable
+        // https://developers.google.com/drive/web/manage-downloads
+        if(!downloadUrl && file['exportLinks']['application/pdf']) {
+          downloadUrl = file['exportLinks']['application/pdf'];
         }
+
+        var accessToken = gapi.auth.getToken().access_token;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', downloadUrl);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.onload = function() {
+
+          var nMeta = normalizeMeta(fileMeta);
+          
+          // add file path
+          nMeta.path = params.path;
+          
+          var file = {
+            content: xhr.responseText,
+            meta: nMeta
+          };
+
+          callback(null, file);
+
+        };
+
+        xhr.onerror = function(err) {
+
+          callback(err);
+
+        };
+
+        xhr.send();
 
       });
 

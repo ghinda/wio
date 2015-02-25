@@ -66,9 +66,15 @@ wio.adapter('dropbox', (function() {
 
         if(appKey) {
           client = new Dropbox.Client({ key: appKey });
+          
+          auth();
+          
+        } else {
+          
+          wio.log('No appKey specified for the Dropbox adapter!');
+          
         }
 
-        auth();
 
       };
 

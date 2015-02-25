@@ -223,7 +223,7 @@ var wio = function(params) {
     runAdapters(adapters, 'remove', params.params, params.callback);
 
   };
-
+  
   // public methods
   var methods = {
     authorize: authorize,
@@ -245,6 +245,12 @@ var wio = function(params) {
 
   return methods;
 
+};
+
+wio.log = function(message) {
+    
+  console.log(message);
+  
 };
 
 wio.adapters = {};
