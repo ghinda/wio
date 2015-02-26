@@ -40,6 +40,10 @@ wio.adapter('dropbox', (function() {
         
       } else {
         
+        client.authDriver(new Dropbox.AuthDriver.Popup());
+        
+        // TODO close the popup and continue the flow after accepting
+        
         client.authenticate({
           interactive: interactive
         }, function(err, client) {
