@@ -34,21 +34,25 @@ wio.adapter('dropbox', (function() {
 
       var interactive = !params.silent;
       
-      console.log(interactive);
-      
-      client.authenticate({
-        interactive: interactive
-      }, function(err, client) {
+      if(client.isAuthenticated()) {
+        
+        callback(null, client);
+        
+      } else {
+        
+        client.authenticate({
+          interactive: interactive
+        }, function(err, client) {
 
-        if(err) {
-          return callback(err);
-        }
+          if(err) {
+            return callback(err);
+          }
 
-        if(client.isAuthenticated()) {
           callback(null, client);
-        }
 
-      });
+        });
+        
+      }
 
     };
 

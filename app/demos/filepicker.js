@@ -141,7 +141,6 @@
       });
       
       io.authorize({
-        silent: true
       },function(err, authRes) {
 
         if(err) {
