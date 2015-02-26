@@ -32,11 +32,9 @@ wio.adapter('dropbox', (function() {
 
     var auth = function() {
 
-      var interactive = true;
+      var interactive = !params.silent;
       
-      if(typeof params.silent !== 'undefined') {
-        interactive = params.silent;
-      }
+      console.log(interactive);
       
       client.authenticate({
         interactive: interactive
