@@ -9,6 +9,7 @@
   var io;
 
   var $list = document.querySelector('.file-list');
+  var $imagePreview = document.querySelector('.image-preview');
 
   var listFiles = function(path) {
 
@@ -96,13 +97,24 @@
             
             io.read({
               path: newListPath
-            }, function(err, res) {
+            }, function(err, file) {
               
               // TODO detect file type depending on extension
+              if(file.meta.name.indexOf('.png')) {
+                var reader = new window.FileReader();
+                var blob = new Blob([file.content], {type: 'image/png'})
+                reader.readAsDataURL(blob); 
+                reader.onloadend = function() {
+                    var base64data = reader.result;                
+                    $imagePreview.src = base64data
+                    console.log(base64data);
+                }
+                
+              }
               
               // TODO we export gdocs as pdf
               // check for %PDF- string at begining of file, for pdf
-              console.log('file content', res);
+              console.log('file content', file);
               
             });
 
