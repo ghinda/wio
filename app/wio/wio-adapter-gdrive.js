@@ -255,10 +255,14 @@ wio.adapter('gdrive', (function() {
         
         var downloadUrl = file.downloadUrl;
         
-        // in case of google doc
+        // in case of google doc file, export pdf
         // TODO all gdoc formats support pdf, so use that
         // but we should make this configurable
         // https://developers.google.com/drive/web/manage-downloads
+        
+        // TODO can't seem to download gspreadsheets as pdf
+        // because of cors error
+        
         if(!downloadUrl && file['exportLinks']['application/pdf']) {
           downloadUrl = file['exportLinks']['application/pdf'];
         }
@@ -266,6 +270,9 @@ wio.adapter('gdrive', (function() {
         var accessToken = gapi.auth.getToken().access_token;
         var xhr = new XMLHttpRequest();
         xhr.open('GET', downloadUrl);
+        
+        xhr.responseType = wio.util.responseType(params);
+        
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.onload = function() {
 
@@ -275,7 +282,7 @@ wio.adapter('gdrive', (function() {
           nMeta.path = params.path;
           
           var file = {
-            content: xhr.responseText,
+            content: xhr.response,
             meta: nMeta
           };
 

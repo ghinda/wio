@@ -209,8 +209,12 @@ wio.adapter('dropbox', (function() {
   };
 
   var read = function(params, callback) {
-
-    console.log(params);
+    
+    var responseType = wio.util.responseType(params);
+    
+    if(responseType === 'blob') {
+      params.blob = true;
+    }
     
     client.readFile(params.path, params, function(err, file, meta) {
       if(err) {

@@ -9,7 +9,7 @@
   var io;
 
   var $list = document.querySelector('.file-list');
-  var $imagePreview = document.querySelector('.image-preview');
+  var $filePreview = document.querySelector('.file-preview');
 
   var listFiles = function(path) {
 
@@ -99,18 +99,57 @@
               path: newListPath
             }, function(err, file) {
               
+              $filePreview.innerHTML = '';
+              
               // TODO detect file type depending on extension
-              if(file.meta.name.indexOf('.png')) {
+              if(file.meta.name.indexOf('.png') !== -1) {
+                
                 var reader = new window.FileReader();
-                var blob = new Blob([file.content], {type: 'image/png'})
-                reader.readAsDataURL(blob); 
+                var $image = document.createElement('img');
+                
+                reader.readAsDataURL(file.content); 
                 reader.onloadend = function() {
-                    var base64data = reader.result;                
-                    $imagePreview.src = base64data
-                    console.log(base64data);
+                  
+                    var base64data = reader.result;          
+                    $image.src = base64data;
+                    
+                    $filePreview.appendChild($image);
+                    
                 }
                 
               }
+                
+              if(
+                  file.meta.name.indexOf('.txt') !== -1 ||
+                  file.meta.name.indexOf('.json') !== -1
+                ) {
+                
+                $filePreview.innerHTML = file.content;
+                
+              };
+              
+              if(
+                file.meta.name.indexOf('.pdf') !== -1 ||
+                (file.meta.mimeType && file.meta.mimeType.indexOf('application/vnd.google-apps.document') !== -1)
+              ) {
+                
+                console.log(file);
+                
+                var $embed = document.createElement('embed');
+                
+                var reader = new window.FileReader();
+                reader.readAsDataURL(file.content); 
+                reader.onloadend = function() {
+                  
+                    var base64data = reader.result;          
+                    $embed.src = base64data;
+                    
+                    $filePreview.appendChild($embed);
+                    
+                }
+              
+              }
+              
               
               // TODO we export gdocs as pdf
               // check for %PDF- string at begining of file, for pdf

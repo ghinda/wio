@@ -65,6 +65,9 @@ wio.adapter('localstorage', (function() {
 
     }
 
+    // TODO implement binary reading, for binary files
+    var responseType = wio.util.responseType(params);
+    
     // don't return an error, maybe the file is in another adapter
 
     callback(err, file);
@@ -85,6 +88,8 @@ wio.adapter('localstorage', (function() {
       },
       content: params.content
     };
+    
+    // TODO convert blobs to dataurls
     
     storage.setItem(params.path, JSON.stringify(file));
 

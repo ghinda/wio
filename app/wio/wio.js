@@ -278,3 +278,48 @@ wio.adapter = function(id, obj) {
   wio.adapters[id] = obj;
 
 };
+
+wio.util = function() {
+  
+  var textFiles = [ 'txt', 'json' ];
+  
+  // check if a file should be returned text or blob
+  // based on its extension
+  var responseType = function(params) {
+    
+    // default xhr responseType
+    var response = 'blob';
+    
+    // if we have a responseType set in the method params
+    if(params.responseType) {
+      
+      response = params.responseType;
+      
+    } else {
+    
+      // get the filename from params.path
+      var filename = params.path.split('/');
+      filename = filename[filename.length - 1];
+      
+      var extension = filename.split('.');
+      extension = extension[extension.length - 1];
+      
+      textFiles.some(function(ext) {
+        if(extension === ext) {
+          response = 'text';
+          return true;
+        }
+        return false;
+      });
+      
+    }
+    
+    return response;
+    
+  };
+  
+  return {
+    responseType: responseType
+  };
+  
+}();
