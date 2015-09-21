@@ -9,11 +9,11 @@ wio
 
 ## Development
 
-  grunt server
-
-## Build
-
-  grunt
+```
+  npm install -g gulp
+  npm install
+  gulp watch
+```
 
 ## Quickstart
 
@@ -104,4 +104,3 @@ The file objects for all of the operations will be the one received from the ada
 }
 
 // The list operation returns only the `meta` object, but without nesting it under a `meta` property
-

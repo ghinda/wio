@@ -223,7 +223,7 @@ var wio = function(params) {
     runAdapters(adapters, 'remove', params.params, params.callback);
 
   };
-  
+
   // public methods
   var methods = {
     authorize: authorize,
@@ -248,9 +248,9 @@ var wio = function(params) {
 };
 
 wio.log = function(message) {
-    
+
   console.log(message);
-  
+
 };
 
 wio.adapters = {};
@@ -280,30 +280,30 @@ wio.adapter = function(id, obj) {
 };
 
 wio.util = function() {
-  
+
   var textFiles = [ 'txt', 'json' ];
-  
+
   // check if a file should be returned text or blob
   // based on its extension
   var responseType = function(params) {
-    
+
     // default xhr responseType
     var response = 'blob';
-    
+
     // if we have a responseType set in the method params
     if(params.responseType) {
-      
+
       response = params.responseType;
-      
+
     } else {
-    
+
       // get the filename from params.path
       var filename = params.path.split('/');
       filename = filename[filename.length - 1];
-      
+
       var extension = filename.split('.');
       extension = extension[extension.length - 1];
-      
+
       textFiles.some(function(ext) {
         if(extension === ext) {
           response = 'text';
@@ -311,15 +311,23 @@ wio.util = function() {
         }
         return false;
       });
-      
+
     }
-    
+
     return response;
-    
+
   };
-  
+
   return {
     responseType: responseType
-  };
-  
-}();
+  }
+
+}()
+
+module.exports = wio
+global.wio = wio
+
+require('./wio-adapter-crypto.js')
+require('./wio-adapter-dropbox.js')
+require('./wio-adapter-gdrive.js')
+require('./wio-adapter-localstorage.js')

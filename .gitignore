@@ -1,7 +1,7 @@
 node_modules
 .tmp
 .sass-cache
-public/
+dist/
 
 # Editor
 .kateproject
