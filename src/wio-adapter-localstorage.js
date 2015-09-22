@@ -1,126 +1,122 @@
 /*
- * localstorage adapter
+ * localstorage plugin
  * for wio
  *
  */
 
-wio.adapter('localstorage', (function() {
-  'use strict';
+var util = require('./util')
+var storage = window.localStorage
 
-  var storage = window.localStorage;
+var authorize = function(params, callback) {
 
-  var authorize = function(params, callback) {
+  // nothing to authorize
+  callback(null, {});
 
-    // nothing to authorize
-    callback(null, {});
+};
 
-  };
+var list = function(params,  callback) {
 
-  var list = function(params,  callback) {
+  // should return an empty array
+  // TODO or an error, if we can't find the path
+  var files = [];
 
-    // should return an empty array
-    // TODO or an error, if we can't find the path
-    var files = [];
+  // get all files in localstorage
+  var i = 0;
+  var fileName;
+  var storageContent;
 
-    // get all files in localstorage
-    var i = 0;
-    var fileName;
-    var storageContent;
+  for (i = 0; i < localStorage.length; i++) {
 
-    for (i = 0; i < localStorage.length; i++) {
+    fileName = window.localStorage.key(i);
 
-      fileName = window.localStorage.key(i);
+    if(fileName.indexOf(params.path) !== -1) {
 
-      if(fileName.indexOf(params.path) !== -1) {
+      storageContent = window.localStorage.getItem(fileName);
 
-        storageContent = window.localStorage.getItem(fileName);
+      if(storageContent) {
+        storageContent = JSON.parse(storageContent);
 
-        if(storageContent) {
-          storageContent = JSON.parse(storageContent);
-
-          files.push(storageContent.meta);
-        }
-
+        files.push(storageContent.meta);
       }
 
     }
 
-    callback(null, files);
+  }
 
-  };
+  callback(null, files);
 
-  var read = function(params,  callback) {
+};
 
-    var err = null;
-    var file = storage.getItem(params.path);
+var read = function(params,  callback) {
 
-    if(file) {
-      file = JSON.parse(file);
-    } else {
+  var err = null;
+  var file = storage.getItem(params.path);
 
-      err = {
-        status: '404',
-        path: params.path
-      };
+  if(file) {
+    file = JSON.parse(file);
+  } else {
 
-    }
-
-    // TODO implement binary reading, for binary files
-    var responseType = wio.util.responseType(params);
-    
-    // don't return an error, maybe the file is in another adapter
-
-    callback(err, file);
-
-  };
-
-  var update = function(params, callback) {
-
-    var modifiedDate = new Date().toISOString();
-
-    if(params.meta && params.meta.modifiedDate) {
-      modifiedDate = params.meta.modifiedDate;
-    }
-
-    var file = {
-      meta: {
-        modifiedDate: modifiedDate
-      },
-      content: params.content
+    err = {
+      status: '404',
+      path: params.path
     };
-    
-    // TODO convert blobs to dataurls
-    
-    storage.setItem(params.path, JSON.stringify(file));
 
-    //console.log('local file', file);
+  }
 
-    callback(null, file);
+  // TODO implement binary reading, for binary files
+  var responseType = util.responseType(params);
 
+  // don't return an error, maybe the file is in another adapter
+
+  callback(err, file);
+
+};
+
+var update = function(params, callback) {
+
+  var modifiedDate = new Date().toISOString();
+
+  if(params.meta && params.meta.modifiedDate) {
+    modifiedDate = params.meta.modifiedDate;
+  }
+
+  var file = {
+    meta: {
+      modifiedDate: modifiedDate
+    },
+    content: params.content
   };
 
-  var remove = function(params,  callback) {
+  // TODO convert blobs to dataurls
 
-    var file = storage.removeItem(params.path);
+  storage.setItem(params.path, JSON.stringify(file));
 
-    callback(null);
+  //console.log('local file', file);
 
-  };
+  callback(null, file);
 
-  var init = function(options) {
+};
+
+var remove = function(params,  callback) {
+
+  var file = storage.removeItem(params.path);
+
+  callback(null);
+
+};
+
+var init = function(options) {
 
 
 
-  };
+};
 
-  return {
-    authorize: authorize,
-    list: list,
-    read: read,
-    update: update,
-    remove: remove,
+module.exports = {
+  authorize: authorize,
+  list: list,
+  read: read,
+  update: update,
+  remove: remove,
 
-    init: init
-  };
-
-})());
+  init: init
+}

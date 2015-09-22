@@ -4,44 +4,39 @@
  *
  */
 
-wio.adapter('crypto', (function() {
-  'use strict';
+var blank = function(params, callback) {
 
-  var blank = function(params, callback) {
+  callback(null, []);
 
-    callback(null, []);
+};
 
-  };
+var init = function(options, methods) {
 
-  var init = function(options, methods) {
+  var prevRead = methods.read;
+  methods.read = function(params, callback) {
 
-    var prevRead = methods.read;
-    methods.read = function(params, callback) {
+    prevRead(params, function(err, res) {
 
-      prevRead(params, function(err, res) {
+      // TODO on read, decode after
+      // TODO on write, encode before
+      if(res.content) {
+        res.content += 'CRYPTO';
+      }
 
-        // TODO on read, decode after
-        // TODO on write, encode before
-        if(res.content) {
-          res.content += 'CRYPTO';
-        }
+      callback(err, res);
 
-        callback(err, res);
-
-      });
-
-    };
+    });
 
   };
 
-  return {
-    authorize: blank,
-    list: blank,
-    read: blank,
-    update: blank,
-    remove: blank,
+};
 
-    init: init
-  };
-  
-})());
+module.exports = {
+  authorize: blank,
+  list: blank,
+  read: blank,
+  update: blank,
+  remove: blank,
+
+  init: init
+}

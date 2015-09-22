@@ -31,9 +31,9 @@ var javascriptTask = function (opts) {
     .on('error', gutil.log)
     .pipe(source('wio.js'))
     .pipe(buffer())
-    .pipe(sourcemaps.init())
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(gulpif(opts.minify, uglify()))
-    .pipe(sourcemaps.write())
+    .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest(config.dist))
 }
 
