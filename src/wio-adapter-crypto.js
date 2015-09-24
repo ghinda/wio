@@ -1,35 +1,33 @@
 /*
- * encryption adapter
+ * encryption plugin
  * for wio
  *
  */
 
-var blank = function(params, callback) {
+var blank = function (params, callback) {
+  callback(null, [])
+}
 
-  callback(null, []);
+var init = function (options) {
+  // the current wio instance
+  var instance = this
 
-};
-
-var init = function(options, methods) {
-
-  var prevRead = methods.read;
-  methods.read = function(params, callback) {
-
-    prevRead(params, function(err, res) {
-
+  // overwrite the read method
+  var prevRead = instance.read
+  instance.read = function (params, callback) {
+    prevRead.call(instance, params, function (err, res) {
       // TODO on read, decode after
       // TODO on write, encode before
-      if(res.content) {
-        res.content += 'CRYPTO';
-      }
+      // if(res.content) {
+      //   res.content += 'CRYPTO';
+      // }
 
-      callback(err, res);
+      console.log('crypto')
 
-    });
-
-  };
-
-};
+      callback(err, res)
+    })
+  }
+}
 
 module.exports = {
   authorize: blank,

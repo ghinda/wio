@@ -40,9 +40,9 @@ var blob = b64toBlob(img, 'image/png');
 (function() {
   'use strict';
 
-  var io = new wio({
+  var io = new Wio({
     adapters: [
-      //'crypto',
+      // 'crypto',
       'gdrive',
       //'dropbox',
       'localstorage'
@@ -78,43 +78,43 @@ var blob = b64toBlob(img, 'image/png');
       path: 'wio/test.json',
       content: 'test',
     }, function(err, updateRes) {
-      
+
       console.log('update', err, updateRes);
-      
+
       io.read({
         path: 'wio/test.json'
       }, function(err, readRes) {
-        
+
         console.log('read', err, readRes);
-        
+
         io.remove({
           path: 'wio/test.json'
         }, function(err, deleteRed) {
-          
+
           console.log('delete', err, deleteRed);
-          
+
         });
-        
+
       });
 
 
     });
-    
+
     io.update({
       path: 'test.png',
       content: blob,
       // required for gdrive
       mimeType: 'image/png'
     }, function(err, updateRes) {
-      
+
       console.log('update binary', err, updateRes);
-      
+
       io.read({
         path: 'test.png'
       }, function(err, readRes) {
-        
+
         console.log('read binary', err, readRes);
-        
+
       });
 
 
@@ -123,4 +123,3 @@ var blob = b64toBlob(img, 'image/png');
   });
 
 }());
-

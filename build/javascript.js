@@ -10,6 +10,7 @@ var config = require('../config')
 var gutil = require('gulp-util')
 var uglify = require('gulp-uglify')
 var gulpif = require('gulp-if')
+// var strictify = require('strictify')
 
 var javascriptTask = function (opts) {
 
