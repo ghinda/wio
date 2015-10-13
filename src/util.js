@@ -1,8 +1,8 @@
 /* wio utils
 */
 
-function log (message) {
-  console.log(message)
+function log () {
+  window.console.log.apply(window.console, arguments)
 }
 
 // check if a file should be returned text or blob

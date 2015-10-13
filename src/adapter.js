@@ -23,9 +23,8 @@ function register (id, obj) {
   this.adapters[id] = obj
 }
 
-function init (pluginName) {
-  this.params.options[pluginName] = this.params.options[pluginName] || {}
-  this.constructor.adapters[pluginName].init.call(this, this.params.options[pluginName])
+function init (adapterName) {
+  this.constructor.adapters[adapterName].init.call(this, this.params.adapters[adapterName])
 }
 
 module.exports = {

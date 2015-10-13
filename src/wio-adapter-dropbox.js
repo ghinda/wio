@@ -5,7 +5,6 @@
  */
 
 var util = require('./util')
-var appKey
 var client
 
 // normalize file meta objects
@@ -110,6 +109,7 @@ var popupAuthDriver = {
 }
 
 function authorize (params, callback) {
+  var appKey = this.params.adapters.dropbox.appKey
   var auth = function () {
     var interactive = !params.silent
 
@@ -136,7 +136,7 @@ function authorize (params, callback) {
     // async load dropbox api
     var script = document.createElement('script')
 
-    script.setAttribute('src', '//cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.2/dropbox.min.js')
+    script.setAttribute('src', '//cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.3/dropbox.min.js')
 
     script.onload = function () {
       if (appKey) {
@@ -156,6 +156,8 @@ function authorize (params, callback) {
 }
 
 function list (params, callback) {
+  console.log(params)
+
   client.readdir(params.path, params, function (err, files, originMeta, filesMeta) {
     if (err) {
       return callback(err)
@@ -211,7 +213,6 @@ function remove (params, callback) {
 }
 
 function init (options) {
-  appKey = options.appKey
 }
 
 module.exports = {

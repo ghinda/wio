@@ -144,25 +144,28 @@
     })
   }
 
+  var adapterConfig = {
+    gdrive: {
+      // scopes: 'https://www.googleapis.com/auth/drive.file',
+      clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
+    },
+    dropbox: {
+      appKey: 'bjjs4f9vkw2gqre'
+    }
+  }
+
   var selectAdapter = function (e) {
-    if (e.target.tagName.toLowerCase() === 'button') {
-      var adapter = e.target.getAttribute('data-adapter')
+    if (e.target.className.indexOf('btn-adapter') !== -1) {
+      var adapterDynamic = e.target.getAttribute('data-adapter')
+
+      var adapters = {
+        localstorage: {}
+      }
+
+      adapters[adapterDynamic] = adapterConfig[adapterDynamic]
 
       io = new Wio({
-        adapters: [
-          // 'crypto',
-          adapter,
-          'localstorage'
-        ],
-        options: {
-          gdrive: {
-            // scopes: 'https://www.googleapis.com/auth/drive.file',
-            clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
-          },
-          dropbox: {
-            appKey: 'bjjs4f9vkw2gqre'
-          }
-        }
+        adapters: adapters
       })
 
       io.authorize({
@@ -183,5 +186,4 @@
   }
 
   init()
-
 }()); // eslint-disable-line

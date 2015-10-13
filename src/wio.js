@@ -5,6 +5,7 @@
 */
 
 var adapter = require('./adapter')
+var util = require('./util')
 
 /* helpers
 */
@@ -37,6 +38,7 @@ var defaults = function (params, defaults, callback) {
 
 // parallel adapter run
 var runAdapters = function (adapters, run, params, callback) {
+  var instance = this
   var newestRes = {}
   var newestAdapter
   var errors = []
@@ -56,7 +58,7 @@ var runAdapters = function (adapters, run, params, callback) {
         // that have an older version
         updateAdapters.splice(updateAdapters.indexOf(newestAdapter), 1)
 
-        runAdapters(updateAdapters, 'update', {
+        runAdapters.call(instance, updateAdapters, 'update', {
           path: params.path,
           content: newestRes.content,
           meta: newestRes.meta
@@ -88,7 +90,7 @@ var runAdapters = function (adapters, run, params, callback) {
     if (err) {
       // if the adapter has responded with an error
       // warn and add it to the errors object
-      console.warn('Error from adapter: ' + adapter, err)
+      util.log('Error on *' + run + '* in adapter *' + adapter + '*', err)
 
       errors.push({
         adapter: adapter,
@@ -142,12 +144,12 @@ var runAdapters = function (adapters, run, params, callback) {
   // run adapters
   adapters.forEach(function (adapter) {
     // TODO remove reference to Wio var
-    Wio.adapters[adapter][run](params, function (err, res) {
+    Wio.adapters[adapter][run].call(this, params, function (err, res) {
       res = res || {}
       res._adapter = adapter
       runner(err, res)
     })
-  })
+  }, this)
 }
 
 /* Wio constructor
@@ -162,7 +164,7 @@ var Wio = function (params) {
   this.params = params
 
   // init selected adapters
-  this.params.adapters.forEach(adapter.init, this)
+  Object.keys(this.params.adapters).forEach(adapter.init, this)
 }
 
 /* public methods
@@ -173,7 +175,8 @@ Wio.prototype.authorize = function (params, callback) {
   }, callback)
 
   // async run adapters
-  runAdapters(this.params.adapters,
+  runAdapters.call(this,
+    Object.keys(this.params.adapters),
     'authorize',
     params.params,
     params.callback)
@@ -184,7 +187,8 @@ Wio.prototype.read = function (params, callback) {
   params = defaults(params, {}, callback)
 
   // async run adapters
-  runAdapters(this.params.adapters,
+  runAdapters.call(this,
+    Object.keys(this.params.adapters),
     'read',
     params.params,
     params.callback)
@@ -194,7 +198,8 @@ Wio.prototype.list = function (params, callback) {
   params = defaults(params, {}, callback)
 
   // async run adapters
-  runAdapters(this.params.adapters,
+  runAdapters.call(this,
+    Object.keys(this.params.adapters),
     'list',
     params.params,
     params.callback)
@@ -206,7 +211,8 @@ Wio.prototype.update = function (params, callback) {
   }, callback)
 
   // async run adapters
-  runAdapters(this.params.adapters,
+  runAdapters.call(this,
+    Object.keys(this.params.adapters),
     'update',
     params.params,
     params.callback)
@@ -216,7 +222,8 @@ Wio.prototype.remove = function (params, callback) {
   params = defaults(this.params, {}, callback)
 
   // async run adapters
-  runAdapters(this.params.adapters,
+  runAdapters.call(this,
+    Object.keys(this.params.adapters),
     'remove',
     params.params,
     params.callback)

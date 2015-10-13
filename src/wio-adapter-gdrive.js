@@ -5,9 +5,7 @@
  */
 
 var util = require('./util')
-var clientId
-var apiKey
-var scopes = 'https://www.googleapis.com/auth/drive'
+var defaultScope = 'https://www.googleapis.com/auth/drive'
 var gapi = window.gapi
 
 // normalize metadata
@@ -30,45 +28,53 @@ function normalizeMeta (meta) {
   return nmeta
 }
 
-function authorize (params, callback) {
-  var auth = function () {
-    gapi.client.load('drive', 'v2', function () {
-      gapi.auth.authorize({
-        client_id: clientId,
-        scope: scopes,
-        immediate: params.silent
-      }, function (authResult) {
-        if (authResult && !authResult.error) {
-          // access token successfully retrieved
-          callback(null, authResult)
-        } else {
-          // no access token could be retrieved
-          callback(authResult)
-        }
-      })
+function auth (params, callback) {
+  var gdriveOptions = this.params.adapters.gdrive
+  var scope = gdriveOptions.scope || defaultScope
+  var clientId = gdriveOptions.clientId
+
+  gapi.client.load('drive', 'v2', function () {
+    gapi.auth.authorize({
+      client_id: clientId,
+      scope: scope,
+      immediate: params.silent
+    }, function (authResult) {
+      if (authResult && !authResult.error) {
+        // access token successfully retrieved
+        callback(null, authResult)
+      } else {
+        // no access token could be retrieved
+        callback(authResult)
+      }
     })
-  }
+  })
+}
+
+function authorize (params, callback) {
+  var apiKey = this.params.adapters.gdrive.apiKey
+  var instance = this
 
   // check if google drive api is loaded
-  if (gapi === 'undefined') {
+  if (typeof gapi === 'undefined') {
     // async load the google api
     var $script = document.createElement('script')
-    $script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=WioCheckGapiClient')
+    var uidCallback = 'WioCheckGapiClient' + Date.now()
+    $script.setAttribute('src', 'https://apis.google.com/js/client.js?onload=' + uidCallback)
 
-    window.WioCheckGapiClient = function () {
+    window[uidCallback] = function () {
       gapi = window.gapi
 
       if (apiKey) {
         gapi.client.setApiKey(apiKey)
       }
 
-      auth()
+      auth.call(instance, params, callback)
     }
 
     var $head = document.getElementsByTagName('head')[0]
     $head.appendChild($script)
   } else {
-    auth()
+    auth.call(instance, params, callback)
   }
 }
 
@@ -388,9 +394,7 @@ function remove (params, callback) {
 }
 
 function init (options) {
-  clientId = options.clientId
-  apiKey = options.apiKey
-  scopes = options.scopes || scopes
+//   console.log(this)
 }
 
 module.exports = {
