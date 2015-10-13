@@ -2,10 +2,11 @@
 * Init
 */
 
-(function() {
-  'use strict';
+(function () {
+  'use strict'
+  var Wio = window.Wio
 
-  var io = new wio({
+  var io = new Wio({
     adapters: [
       'crypto',
       'gdrive',
@@ -13,96 +14,79 @@
     ],
     options: {
       gdrive: {
-        //scopes: 'https://www.googleapis.com/auth/drive.file',
+        // scopes: 'https://www.googleapis.com/auth/drive.file',
         clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
       }
     }
-  });
+  })
 
-  var $list = document.querySelector('.file-list');
+  var $list = document.querySelector('.file-list')
 
-  var listFiles = function(path) {
-
-    $list.innerHTML = 'loading..';
+  var listFiles = function (path) {
+    $list.innerHTML = 'loading..'
 
     io.list({
       path: path
-    }, function(err, listRes) {
-
-      console.log('list', err, listRes);
-
-      $list.innerHTML = '';
+    }, function (err, listRes) {
+      console.log('list', err, listRes)
+      $list.innerHTML = ''
 
       // add .. up link
-      if(path !== '/' && path !== '') {
+      if (path !== '/' && path !== '') {
+        var $li = document.createElement('li')
+        var $a = document.createElement('a')
 
-        var $li = document.createElement('li');
-        var $a = document.createElement('a');
+        $a.innerHTML = '..'
 
-        $a.innerHTML = '..';
+        $a.href = '#'
+        $a.addEventListener('click', function () {
+          listFiles('/')
+        })
 
-        $a.href = '#';
-
-        $a.addEventListener('click', function() {
-
-          listFiles('/');
-
-        });
-
-        $li.appendChild($a);
-        $list.appendChild($li);
-
+        $li.appendChild($a)
+        $list.appendChild($li)
       }
 
-      listRes.forEach(function(file) {
+      listRes.forEach(function (file) {
+        var $li = document.createElement('li')
+        var $a = document.createElement('a')
 
-        var $li = document.createElement('li');
-        var $a = document.createElement('a');
+        $a.innerHTML = '<img src="' + file.iconLink + '">' + file.title
 
-        $a.innerHTML = '<img src="' + file.iconLink + '">' + file.title;
-
-        $li.appendChild($a);
-        $list.appendChild($li);
+        $li.appendChild($a)
+        $list.appendChild($li)
 
         // only if file is folder
-        if(file.mimeType !== 'application/vnd.google-apps.folder') {
-          return false;
+        if (file.mimeType !== 'application/vnd.google-apps.folder') {
+          return false
         }
 
-        $a.href = '#';
+        $a.href = '#'
 
-        $a.addEventListener('click', function() {
-
-          var newListPath = path;
+        $a.addEventListener('click', function () {
+          var newListPath = path
 
           // only if last char isn't already /
-          if(path[path.length - 1] !== '/') {
-            newListPath += '/';
+          if (path[path.length - 1] !== '/') {
+            newListPath += '/'
           }
 
-          newListPath += file.title;
+          newListPath += file.title
 
-          listFiles(newListPath);
-
-        });
-
-      });
-
-
-    });
-
-
-  };
+          listFiles(newListPath)
+        })
+      })
+    })
+  }
 
   io.authorize({
-    //silent: true
-  },function(err, authRes) {
-
-    if(err) {
-      return false;
+    // silent: true
+  }, function (err, authRes) {
+    if (err) {
+      return false
     }
 
-    listFiles('/');
+    listFiles('/')
 
     /*
 
@@ -185,8 +169,6 @@
     });
 
     */
-
-  });
-
-}());
+  })
+}())
 

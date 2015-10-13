@@ -4,7 +4,7 @@
 *
 */
 
-var plugin = require('./plugin')
+var adapter = require('./adapter')
 
 /* helpers
 */
@@ -142,7 +142,7 @@ var runAdapters = function (adapters, run, params, callback) {
   // run adapters
   adapters.forEach(function (adapter) {
     // TODO remove reference to Wio var
-    Wio.plugins[adapter][run](params, function (err, res) {
+    Wio.adapters[adapter][run](params, function (err, res) {
       res = res || {}
       res._adapter = adapter
       runner(err, res)
@@ -162,7 +162,7 @@ var Wio = function (params) {
   this.params = params
 
   // init selected adapters
-  this.params.adapters.forEach(plugin.init, this)
+  this.params.adapters.forEach(adapter.init, this)
 }
 
 /* public methods
@@ -222,16 +222,16 @@ Wio.prototype.remove = function (params, callback) {
     params.callback)
 }
 
-/* plugins
+/* adapter
 */
-Wio.plugin = function () {
-  plugin.register.apply(this, arguments)
+Wio.adapter = function () {
+  adapter.register.apply(this, arguments)
 }
 
-Wio.plugin('localstorage', require('./wio-adapter-localstorage.js'))
-Wio.plugin('gdrive', require('./wio-adapter-gdrive.js'))
-Wio.plugin('dropbox', require('./wio-adapter-dropbox.js'))
-Wio.plugin('crypto', require('./wio-adapter-crypto.js'))
+Wio.adapter('localstorage', require('./wio-adapter-localstorage.js'))
+Wio.adapter('gdrive', require('./wio-adapter-gdrive.js'))
+Wio.adapter('dropbox', require('./wio-adapter-dropbox.js'))
+Wio.adapter('crypto', require('./wio-adapter-crypto.js'))
 
 /* exports
 */
