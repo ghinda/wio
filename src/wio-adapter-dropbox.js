@@ -7,20 +7,16 @@
 var util = require('./util')
 var client
 
-// normalize file meta objects
-var normalizeMeta = function (meta) {
-  // copy original metadata
-  var normalizedMeta = JSON.parse(JSON.stringify(meta))
+// wio meta object
+var wioMeta = function (fileMeta) {
+  var meta = {}
 
-  normalizedMeta.modifiedDate = meta.modifiedAt
+  meta._orig = fileMeta
+  meta.name = fileMeta.name
+  meta.modifiedDate = fileMeta.modifiedAt
+  meta.type = (fileMeta.isFolder === true ? 'folder' : 'file')
 
-  normalizedMeta.type = 'file'
-
-  if (normalizedMeta.isFolder) {
-    normalizedMeta.type = 'folder'
-  }
-
-  return normalizedMeta
+  return meta
 }
 
 var parseQueryParams = function (qstr) {
@@ -108,30 +104,31 @@ var popupAuthDriver = {
   }
 }
 
+function auth (params, callback) {
+  var interactive = !params.silent
+
+  if (client.isAuthenticated()) {
+    callback(null, client)
+  } else {
+    client.authDriver(popupAuthDriver)
+
+    // TODO close the popup and continue the flow after accepting
+    client.authenticate({
+      interactive: interactive
+    }, function (err, client) {
+      if (err) {
+        return callback(err)
+      }
+
+      callback(null, client)
+    })
+  }
+}
+
 function authorize (params, callback) {
   var appKey = this.params.adapters.dropbox.appKey
-  var auth = function () {
-    var interactive = !params.silent
 
-    if (client.isAuthenticated()) {
-      callback(null, client)
-    } else {
-      client.authDriver(popupAuthDriver)
-
-      // TODO close the popup and continue the flow after accepting
-      client.authenticate({
-        interactive: interactive
-      }, function (err, client) {
-        if (err) {
-          return callback(err)
-        }
-
-        callback(null, client)
-      })
-    }
-  }
-
-  // check if dropbox.js is really loaded
+  // check if dropbox.js is loaded
   if (typeof window.Dropbox === 'undefined') {
     // async load dropbox api
     var script = document.createElement('script')
@@ -142,7 +139,7 @@ function authorize (params, callback) {
       if (appKey) {
         client = new window.Dropbox.Client({ key: appKey })
 
-        auth()
+        auth(params, callback)
       } else {
         util.log('No appKey specified for the Dropbox adapter!')
       }
@@ -151,23 +148,17 @@ function authorize (params, callback) {
     var head = document.getElementsByTagName('head')[0]
     head.appendChild(script)
   } else {
-    auth()
+    auth(params, callback)
   }
 }
 
 function list (params, callback) {
-  console.log(params)
-
   client.readdir(params.path, params, function (err, files, originMeta, filesMeta) {
     if (err) {
       return callback(err)
     }
 
-    filesMeta.forEach(function (meta, index) {
-      filesMeta[index] = normalizeMeta(meta)
-    })
-
-    callback(null, filesMeta)
+    callback(null, filesMeta.map(wioMeta))
   })
 }
 
@@ -184,7 +175,7 @@ function read (params, callback) {
     }
 
     callback(null, {
-      meta: normalizeMeta(meta),
+      meta: wioMeta(meta),
       content: file
     })
   })
@@ -197,7 +188,7 @@ function update (params, callback) {
       return callback(err)
     }
 
-    callback(null, normalizeMeta(meta))
+    callback(null, wioMeta(meta))
   })
 }
 
@@ -208,7 +199,7 @@ function remove (params, callback) {
       return callback(err)
     }
 
-    callback(null, normalizeMeta(meta))
+    callback(null, wioMeta(meta))
   })
 }
 

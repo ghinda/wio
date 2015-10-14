@@ -8,24 +8,25 @@ var util = require('./util')
 var defaultScope = 'https://www.googleapis.com/auth/drive'
 var gapi = window.gapi
 
-// normalize metadata
-function normalizeMeta (meta) {
-  // copy existing metadata
-  var nmeta = JSON.parse(JSON.stringify(meta))
+// wio metadata
+function wioMeta (fileMeta) {
+  var meta = {}
 
-  nmeta.modifiedDate = meta.modifiedDate
-  nmeta.name = meta.title
-  nmeta.type = 'file'
+  meta._orig = fileMeta
+  meta.modifiedDate = fileMeta.modifiedDate
+  meta.name = fileMeta.title
+  meta.type = 'file'
 
-  if (meta.mimeType === 'application/vnd.google-apps.folder') {
-    nmeta.type = 'folder'
+  if (fileMeta.mimeType === 'application/vnd.google-apps.folder') {
+    meta.type = 'folder'
   }
 
   // placeholder
   // the path is overwritten before the callback
-  nmeta.path = meta.name
+  // TODO still needed?
+//   nmeta.path = meta.name
 
-  return nmeta
+  return meta
 }
 
 function auth (params, callback) {
@@ -137,6 +138,7 @@ function find (path, callback) {
       q += 'AND mimeType="' + mimeType + '"'
     }
 
+    // TODO sort?
     var request = gapi.client.drive.files.list({
       q: q
     })
@@ -188,7 +190,7 @@ function list (params, callback) {
 
         // normalize metadata
         res.items.forEach(function (item, index) {
-          res.items[index] = normalizeMeta(item)
+          res.items[index] = wioMeta(item)
 
           // add full path
           res.items[index].path = pathStart + res.items[index].name
@@ -233,7 +235,7 @@ function read (params, callback) {
       xhr.responseType = util.responseType(params)
       xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken)
       xhr.onload = function () {
-        var nMeta = normalizeMeta(fileMeta)
+        var nMeta = wioMeta(fileMeta)
 
         // add file path
         nMeta.path = params.path
@@ -303,7 +305,7 @@ function update (params, callback) {
           return callback(response)
         }
 
-        var nMeta = normalizeMeta(response)
+        var nMeta = wioMeta(response)
 
         // add full path
         nMeta.path = params.path

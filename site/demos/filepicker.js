@@ -146,7 +146,7 @@
 
   var adapterConfig = {
     gdrive: {
-      // scopes: 'https://www.googleapis.com/auth/drive.file',
+      // scope: 'https://www.googleapis.com/auth/drive.file',
       clientId: '1016266345728-6obbdsicgtsquer95qda26iaknnbcgg0.apps.googleusercontent.com'
     },
     dropbox: {
